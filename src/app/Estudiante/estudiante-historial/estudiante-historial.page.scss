@@ -1,0 +1,590 @@
+ion-toolbar {
+  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.historial-container {
+  padding: 16px;
+  background-color: #f5f5f5;
+  min-height: 100%;
+}
+
+// Card de resumen semanal
+.resumen-card {
+  margin: 0 0 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+  ion-card-content {
+    padding: 20px;
+
+    .resumen-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+
+      .resumen-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        ion-icon {
+          font-size: 28px;
+          color: white;
+        }
+      }
+
+      .resumen-info {
+        flex: 1;
+
+        h3 {
+          font-size: 18px;
+          font-weight: 600;
+          margin: 0 0 4px;
+          color: white;
+        }
+
+        p {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.9);
+          margin: 0;
+        }
+      }
+    }
+
+    .resumen-stats {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 16px;
+
+      .stat-item {
+        text-align: center;
+
+        .stat-circle {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 8px;
+          font-size: 22px;
+          font-weight: 700;
+          color: white;
+
+          &.asistidas {
+            background: rgba(76, 175, 80, 0.9);
+          }
+
+          &.perdidas {
+            background: rgba(244, 67, 54, 0.9);
+          }
+
+          &.total {
+            background: rgba(255, 255, 255, 0.25);
+          }
+        }
+
+        p {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.9);
+          margin: 0;
+        }
+      }
+    }
+
+    ion-button {
+      --border-color: white;
+      --color: white;
+      --background-hover: rgba(255, 255, 255, 0.1);
+      text-transform: none;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+  }
+}
+
+// Grid de estadísticas
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .stat-card {
+    margin: 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    ion-card-content {
+      text-align: center;
+      padding: 16px 8px;
+
+      .stat-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+
+        &.completadas {
+          color: #4caf50;
+        }
+
+        &.canceladas {
+          color: #f44336;
+        }
+
+        &.materias {
+          color: #2196f3;
+        }
+      }
+
+      h3 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 4px 0;
+        color: #333;
+      }
+
+      p {
+        font-size: 12px;
+        color: #666;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Card de filtros
+.filtros-card {
+  margin: 0 0 20px;
+  border-radius: 12px;
+
+  ion-card-content {
+    padding: 16px;
+
+    .filtros-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+
+      .filter-icon {
+        font-size: 24px;
+        color: #667eea;
+      }
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+      }
+    }
+
+    .filtros-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+
+      .filtro-item {
+        &.full-width {
+          grid-column: 1 / -1;
+        }
+
+        ion-item {
+          --background: #f8f9fa;
+          --border-radius: 8px;
+          --padding-start: 12px;
+          --inner-padding-end: 12px;
+
+          ion-select {
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Título de sección
+.section-header {
+  margin: 20px 0 12px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+}
+
+// Lista de tutorías
+.tutorias-list {
+  .tutoria-card {
+    margin: 0 0 12px;
+    border-radius: 12px;
+    transition: transform 0.2s;
+
+    &.completada {
+      border-left: 4px solid #4caf50;
+    }
+
+    &.cancelada {
+      border-left: 4px solid #f44336;
+      opacity: 0.9;
+    }
+
+    &:active {
+      transform: scale(0.99);
+    }
+
+    ion-card-content {
+      padding: 16px;
+
+      .tutoria-main {
+        .tutoria-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 12px;
+
+          .materia-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+
+            ion-icon {
+              font-size: 20px;
+              color: #667eea;
+            }
+
+            h4 {
+              font-size: 16px;
+              font-weight: 600;
+              margin: 0;
+              color: #333;
+            }
+          }
+
+          ion-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+          }
+        }
+
+        .docente-info {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          margin-bottom: 12px;
+
+          .avatar-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            ion-icon {
+              font-size: 22px;
+              color: white;
+            }
+          }
+
+          .docente-detalles {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            .docente-nombre {
+              font-size: 14px;
+              font-weight: 600;
+              color: #333;
+            }
+
+            .docente-email {
+              font-size: 12px;
+              color: #666;
+            }
+          }
+        }
+
+        .detalles-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+          margin-bottom: 10px;
+
+          .detalle-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+
+            ion-icon {
+              font-size: 20px;
+              color: #667eea;
+              flex-shrink: 0;
+            }
+
+            .detalle-text {
+              display: flex;
+              flex-direction: column;
+
+              .detalle-label {
+                font-size: 10px;
+                color: #999;
+                text-transform: uppercase;
+              }
+
+              .detalle-valor {
+                font-size: 13px;
+                color: #333;
+                font-weight: 500;
+              }
+            }
+          }
+        }
+
+        .duracion-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          background: #fff3e0;
+          border-radius: 20px;
+          margin-bottom: 10px;
+
+          ion-icon {
+            font-size: 16px;
+            color: #ff9800;
+          }
+
+          span {
+            font-size: 12px;
+            color: #e65100;
+            font-weight: 500;
+          }
+        }
+
+        .asistencia-info {
+          margin: 12px 0;
+
+          .asistencia-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+
+            &.asistio {
+              background: #e8f5e9;
+              border: 1px solid #4caf50;
+
+              ion-icon {
+                font-size: 20px;
+                color: #4caf50;
+              }
+
+              span {
+                font-size: 13px;
+                color: #2e7d32;
+                font-weight: 600;
+              }
+            }
+
+            &.no-asistio {
+              background: #ffebee;
+              border: 1px solid #f44336;
+
+              ion-icon {
+                font-size: 20px;
+                color: #f44336;
+              }
+
+              span {
+                font-size: 13px;
+                color: #c62828;
+                font-weight: 600;
+              }
+            }
+          }
+        }
+
+        .motivo-cancelacion {
+          margin-top: 12px;
+          padding: 12px;
+          background: #ffebee;
+          border-radius: 8px;
+          border-left: 3px solid #f44336;
+
+          .motivo-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+
+            ion-icon {
+              font-size: 18px;
+              color: #f44336;
+            }
+
+            strong {
+              font-size: 13px;
+              color: #d32f2f;
+            }
+          }
+
+          p {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+            line-height: 1.4;
+          }
+        }
+
+        .notas-section {
+          margin-top: 12px;
+          padding: 12px;
+          background: #e3f2fd;
+          border-radius: 8px;
+          border-left: 3px solid #2196f3;
+
+          .notas-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+
+            ion-icon {
+              font-size: 18px;
+              color: #2196f3;
+            }
+
+            strong {
+              font-size: 13px;
+              color: #1565c0;
+            }
+          }
+
+          p {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+            line-height: 1.4;
+          }
+        }
+      }
+
+      .tutoria-footer {
+        padding-top: 12px;
+        border-top: 1px solid #f0f0f0;
+        margin-top: 12px;
+
+        ion-button {
+          --color: #667eea;
+          font-size: 12px;
+          text-transform: none;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+// Estado vacío
+.empty-state {
+  margin: 40px 0 0;
+  border-radius: 12px;
+  text-align: center;
+
+  ion-card-content {
+    padding: 50px 20px;
+
+    .empty-icon {
+      font-size: 80px;
+      color: #ccc;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 8px;
+      color: #333;
+    }
+
+    p {
+      font-size: 14px;
+      color: #999;
+      margin: 0 0 16px;
+    }
+
+    ion-button {
+      --border-color: #667eea;
+      --color: #667eea;
+      text-transform: none;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .stats-grid {
+    gap: 8px;
+
+    .stat-card ion-card-content {
+      padding: 12px 6px;
+
+      .stat-icon {
+        font-size: 28px;
+      }
+
+      h3 {
+        font-size: 20px;
+      }
+
+      p {
+        font-size: 11px;
+      }
+    }
+  }
+
+  .filtros-card ion-card-content .filtros-grid {
+    grid-template-columns: 1fr;
+
+    .filtro-item.full-width {
+      grid-column: 1;
+    }
+  }
+
+  .tutorias-list .tutoria-card ion-card-content .tutoria-main {
+    .detalles-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .resumen-card ion-card-content .resumen-stats {
+      gap: 8px;
+
+      .stat-item .stat-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+      }
+    }
+  }
+}

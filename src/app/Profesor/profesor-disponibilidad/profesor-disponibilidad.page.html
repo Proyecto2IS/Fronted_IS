@@ -1,13 +1,189 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>profesor-disponibilidad</ion-title>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/profesor"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Gestionar Disponibilidad</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onSave()">
+        <ion-icon slot="icon-only" name="save-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">profesor-disponibilidad</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="disponibilidad-container">
+
+    <!-- Información del docente -->
+    <ion-card class="info-card">
+      <ion-card-content>
+        <div class="info-header">
+          <ion-icon name="information-circle-outline" class="info-icon"></ion-icon>
+          <div class="info-text">
+            <h3>Configura tus horarios</h3>
+            <p>Define las franjas horarias en las que estarás disponible para tutorías</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Selector de materia -->
+    <ion-card class="selector-card">
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-icon name="book-outline" slot="start" class="item-icon"></ion-icon>
+          <ion-select
+            label="Seleccionar materia"
+            placeholder="Elige una materia"
+            [(ngModel)]="materiaSeleccionada"
+            (ionChange)="onMateriaChange()">
+            <ion-select-option *ngFor="let materia of materias" [value]="materia.id">
+              {{ materia.nombre }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Grid de días de la semana -->
+    <div class="section-title">
+      <h3>Días disponibles</h3>
+    </div>
+
+    <div class="dias-grid">
+      <ion-chip
+        *ngFor="let dia of diasSemana"
+        [outline]="!dia.seleccionado"
+        [color]="dia.seleccionado ? 'primary' : 'medium'"
+        (click)="toggleDia(dia)">
+        <ion-icon [name]="dia.seleccionado ? 'checkmark-circle' : 'ellipse-outline'"></ion-icon>
+        <ion-label>{{ dia.nombre }}</ion-label>
+      </ion-chip>
+    </div>
+
+    <!-- Franjas horarias -->
+    <div class="section-title">
+      <h3>Franjas horarias</h3>
+      <ion-button fill="clear" size="small" (click)="agregarFranja()">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Agregar
+      </ion-button>
+    </div>
+
+    <div class="franjas-list" *ngIf="franjasHorarias.length > 0; else noFranjas">
+      <ion-card *ngFor="let franja of franjasHorarias; let i = index" class="franja-card">
+        <ion-card-content>
+          <div class="franja-header">
+            <h4>Franja {{ i + 1 }}</h4>
+            <ion-button fill="clear" color="danger" size="small" (click)="eliminarFranja(i)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+
+          <div class="franja-body">
+            <div class="time-input">
+              <ion-item lines="none">
+                <ion-icon name="time-outline" slot="start" class="time-icon"></ion-icon>
+                <ion-input
+                  type="time"
+                  label="Hora inicio"
+                  labelPlacement="stacked"
+                  [(ngModel)]="franja.horaInicio">
+                </ion-input>
+              </ion-item>
+            </div>
+
+            <div class="separator">
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+            </div>
+
+            <div class="time-input">
+              <ion-item lines="none">
+                <ion-icon name="time-outline" slot="start" class="time-icon"></ion-icon>
+                <ion-input
+                  type="time"
+                  label="Hora fin"
+                  labelPlacement="stacked"
+                  [(ngModel)]="franja.horaFin">
+                </ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="franja-footer">
+            <ion-item lines="none">
+              <ion-icon name="time-outline" slot="start" class="duration-icon"></ion-icon>
+              <ion-select
+                label="Duración por tutoría"
+                [(ngModel)]="franja.duracion">
+                <ion-select-option value="30">30 minutos</ion-select-option>
+                <ion-select-option value="45">45 minutos</ion-select-option>
+                <ion-select-option value="60">60 minutos</ion-select-option>
+                <ion-select-option value="90">90 minutos</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <ng-template #noFranjas>
+      <ion-card class="empty-state">
+        <ion-card-content>
+          <ion-icon name="time-outline" class="empty-icon"></ion-icon>
+          <p>No has agregado franjas horarias</p>
+          <ion-button fill="outline" (click)="agregarFranja()">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+            Agregar franja
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </ng-template>
+
+    <!-- Resumen de disponibilidad -->
+    <div class="section-title" *ngIf="franjasHorarias.length > 0">
+      <h3>Resumen</h3>
+    </div>
+
+    <ion-card class="resumen-card" *ngIf="franjasHorarias.length > 0">
+      <ion-card-content>
+        <div class="resumen-item">
+          <ion-icon name="calendar-outline" class="resumen-icon"></ion-icon>
+          <div class="resumen-info">
+            <p class="resumen-label">Días seleccionados</p>
+            <p class="resumen-value">{{ getDiasSeleccionados() }}</p>
+          </div>
+        </div>
+
+        <div class="resumen-item">
+          <ion-icon name="time-outline" class="resumen-icon"></ion-icon>
+          <div class="resumen-info">
+            <p class="resumen-label">Total de franjas</p>
+            <p class="resumen-value">{{ franjasHorarias.length }}</p>
+          </div>
+        </div>
+
+        <div class="resumen-item">
+          <ion-icon name="people-outline" class="resumen-icon"></ion-icon>
+          <div class="resumen-info">
+            <p class="resumen-label">Materia</p>
+            <p class="resumen-value">{{ getMateriaSeleccionada() }}</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Botones de acción -->
+    <div class="action-buttons">
+      <ion-button expand="block" (click)="onSave()">
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Guardar disponibilidad
+      </ion-button>
+      <ion-button expand="block" fill="outline" color="medium" (click)="onCancel()">
+        Cancelar
+      </ion-button>
+    </div>
+
+  </div>
 </ion-content>

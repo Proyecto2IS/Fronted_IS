@@ -1,13 +1,231 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>profesor-solicitudes</ion-title>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/profesor"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Solicitudes de Tutoría</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onRefresh()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">profesor-solicitudes</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="solicitudes-container">
+
+    <!-- Tabs para filtrar por estado -->
+    <div class="tabs-container">
+      <div class="tab-buttons">
+        <button
+          class="tab-button"
+          [class.active]="tabActivo === 'pendientes'"
+          (click)="cambiarTab('pendientes')">
+          <span class="tab-label">Pendientes</span>
+          <ion-badge *ngIf="solicitudesPendientes.length > 0" color="warning">
+            {{ solicitudesPendientes.length }}
+          </ion-badge>
+        </button>
+
+        <button
+          class="tab-button"
+          [class.active]="tabActivo === 'procesadas'"
+          (click)="cambiarTab('procesadas')">
+          <span class="tab-label">Procesadas</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Lista de solicitudes pendientes -->
+    <div class="solicitudes-list" *ngIf="tabActivo === 'pendientes'">
+
+      <div class="info-banner" *ngIf="solicitudesPendientes.length > 0">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <p>Revisa y responde a las solicitudes de tus estudiantes</p>
+      </div>
+
+      <div *ngIf="solicitudesPendientes.length > 0; else noPendientes">
+        <ion-card *ngFor="let solicitud of solicitudesPendientes" class="solicitud-card pendiente">
+          <ion-card-content>
+            <div class="solicitud-header">
+              <div class="estudiante-info">
+                <div class="avatar-circle">
+                  <ion-icon name="person-outline"></ion-icon>
+                </div>
+                <div class="estudiante-detalles">
+                  <h3>{{ solicitud.estudiante }}</h3>
+                  <p class="email">{{ solicitud.correo }}</p>
+                </div>
+              </div>
+              <ion-badge color="warning" class="estado-badge">
+                Pendiente
+              </ion-badge>
+            </div>
+
+            <div class="solicitud-body">
+              <div class="info-row">
+                <ion-icon name="book-outline" class="info-icon materia"></ion-icon>
+                <div class="info-content">
+                  <span class="info-label">Materia</span>
+                  <span class="info-value">{{ solicitud.materia }}</span>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <ion-icon name="calendar-outline" class="info-icon fecha"></ion-icon>
+                <div class="info-content">
+                  <span class="info-label">Fecha solicitada</span>
+                  <span class="info-value">{{ solicitud.fecha }}</span>
+                </div>
+              </div>
+
+              <div class="info-row">
+                <ion-icon name="time-outline" class="info-icon hora"></ion-icon>
+                <div class="info-content">
+                  <span class="info-label">Horario</span>
+                  <span class="info-value">{{ solicitud.hora }}</span>
+                </div>
+              </div>
+
+              <div class="info-row" *ngIf="solicitud.motivo">
+                <ion-icon name="chatbubble-outline" class="info-icon motivo"></ion-icon>
+                <div class="info-content">
+                  <span class="info-label">Motivo</span>
+                  <span class="info-value motivo-text">{{ solicitud.motivo }}</span>
+                </div>
+              </div>
+
+              <div class="fecha-solicitud">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>Solicitada hace {{ solicitud.tiempoTranscurrido }}</span>
+              </div>
+            </div>
+
+            <div class="solicitud-footer">
+              <ion-button
+                expand="block"
+                color="success"
+                (click)="aceptarSolicitud(solicitud)">
+                <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                Aceptar
+              </ion-button>
+
+              <ion-button
+                expand="block"
+                color="danger"
+                fill="outline"
+                (click)="rechazarSolicitud(solicitud)">
+                <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+                Rechazar y proponer alternativas
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <ng-template #noPendientes>
+        <ion-card class="empty-state">
+          <ion-card-content>
+            <ion-icon name="checkmark-done-outline" class="empty-icon success"></ion-icon>
+            <h3>¡Todo al día!</h3>
+            <p>No tienes solicitudes pendientes por revisar</p>
+          </ion-card-content>
+        </ion-card>
+      </ng-template>
+    </div>
+
+    <!-- Lista de solicitudes procesadas -->
+    <div class="solicitudes-list" *ngIf="tabActivo === 'procesadas'">
+
+      <div class="filtro-procesadas">
+        <ion-item lines="none">
+          <ion-icon name="filter-outline" slot="start" class="filter-icon"></ion-icon>
+          <ion-select
+            label="Filtrar por estado"
+            [(ngModel)]="filtroProcesadas"
+            (ionChange)="onFiltroProcesadasChange()">
+            <ion-select-option value="todas">Todas</ion-select-option>
+            <ion-select-option value="aceptadas">Aceptadas</ion-select-option>
+            <ion-select-option value="rechazadas">Rechazadas</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </div>
+
+      <div *ngIf="solicitudesProcesadasFiltradas.length > 0; else noProcesadas">
+        <ion-card *ngFor="let solicitud of solicitudesProcesadasFiltradas"
+                  class="solicitud-card procesada"
+                  [class.aceptada]="solicitud.estado === 'Aceptada'"
+                  [class.rechazada]="solicitud.estado === 'Rechazada'">
+          <ion-card-content>
+            <div class="solicitud-header">
+              <div class="estudiante-info">
+                <div class="avatar-circle small">
+                  <ion-icon name="person-outline"></ion-icon>
+                </div>
+                <div class="estudiante-detalles">
+                  <h4>{{ solicitud.estudiante }}</h4>
+                  <p class="materia-small">{{ solicitud.materia }}</p>
+                </div>
+              </div>
+              <ion-badge
+                [color]="solicitud.estado === 'Aceptada' ? 'success' : 'danger'"
+                class="estado-badge">
+                {{ solicitud.estado }}
+              </ion-badge>
+            </div>
+
+            <div class="solicitud-body-compact">
+              <div class="detalles-row">
+                <div class="detalle-item">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ solicitud.fecha }}</span>
+                </div>
+                <div class="detalle-item">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>{{ solicitud.hora }}</span>
+                </div>
+              </div>
+
+              <div class="respuesta-info" *ngIf="solicitud.estado === 'Rechazada' && solicitud.alternativasPropuestas">
+                <div class="respuesta-header">
+                  <ion-icon name="swap-horizontal-outline"></ion-icon>
+                  <strong>Alternativas propuestas:</strong>
+                </div>
+                <div class="alternativas-list">
+                  <div *ngFor="let alt of solicitud.alternativasPropuestas" class="alternativa-item">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                    <span>{{ alt.fecha }} - {{ alt.hora }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fecha-procesada">
+                <ion-icon name="checkmark-outline"></ion-icon>
+                <span>Procesada el {{ solicitud.fechaProcesada }}</span>
+              </div>
+            </div>
+
+            <div class="solicitud-footer-compact">
+              <ion-button fill="clear" size="small" (click)="verDetallesSolicitud(solicitud)">
+                <ion-icon name="eye-outline" slot="start"></ion-icon>
+                Ver detalles
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <ng-template #noProcesadas>
+        <ion-card class="empty-state">
+          <ion-card-content>
+            <ion-icon name="folder-open-outline" class="empty-icon"></ion-icon>
+            <h3>Sin solicitudes procesadas</h3>
+            <p>Aquí aparecerán las solicitudes que hayas aceptado o rechazado</p>
+          </ion-card-content>
+        </ion-card>
+      </ng-template>
+    </div>
+
+  </div>
 </ion-content>

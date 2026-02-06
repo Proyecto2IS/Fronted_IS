@@ -1,13 +1,343 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>solicitar-tutoria</ion-title>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/estudiante"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Solicitar Tutoría</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">solicitar-tutoria</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="solicitar-container">
+
+    <!-- Stepper/Progreso -->
+    <div class="stepper-container">
+      <div class="step" [class.active]="pasoActual === 1" [class.completed]="pasoActual > 1">
+        <div class="step-number">
+          <ion-icon *ngIf="pasoActual > 1" name="checkmark"></ion-icon>
+          <span *ngIf="pasoActual <= 1">1</span>
+        </div>
+        <span class="step-label">Materia</span>
+      </div>
+
+      <div class="step-line" [class.completed]="pasoActual > 1"></div>
+
+      <div class="step" [class.active]="pasoActual === 2" [class.completed]="pasoActual > 2">
+        <div class="step-number">
+          <ion-icon *ngIf="pasoActual > 2" name="checkmark"></ion-icon>
+          <span *ngIf="pasoActual <= 2">2</span>
+        </div>
+        <span class="step-label">Docente</span>
+      </div>
+
+      <div class="step-line" [class.completed]="pasoActual > 2"></div>
+
+      <div class="step" [class.active]="pasoActual === 3" [class.completed]="pasoActual > 3">
+        <div class="step-number">
+          <ion-icon *ngIf="pasoActual > 3" name="checkmark"></ion-icon>
+          <span *ngIf="pasoActual <= 3">3</span>
+        </div>
+        <span class="step-label">Horario</span>
+      </div>
+
+      <div class="step-line" [class.completed]="pasoActual > 3"></div>
+
+      <div class="step" [class.active]="pasoActual === 4">
+        <div class="step-number">4</div>
+        <span class="step-label">Confirmar</span>
+      </div>
+    </div>
+
+    <!-- Paso 1: Seleccionar Materia -->
+    <div class="paso-content" *ngIf="pasoActual === 1">
+      <ion-card class="paso-card">
+        <ion-card-content>
+          <div class="paso-header">
+            <ion-icon name="book-outline" class="paso-icon"></ion-icon>
+            <div>
+              <h2>Selecciona una materia</h2>
+              <p>Elige la materia para la que necesitas tutoría</p>
+            </div>
+          </div>
+
+          <div class="materias-grid">
+            <div *ngFor="let materia of materias"
+                 class="materia-card"
+                 [class.selected]="materiaSeleccionada?.id === materia.id"
+                 (click)="seleccionarMateria(materia)">
+              <div class="materia-icon">
+                <ion-icon name="book"></ion-icon>
+              </div>
+              <div class="materia-info">
+                <h3>{{ materia.nombre }}</h3>
+                <p>{{ materia.codigo }}</p>
+              </div>
+              <ion-icon
+                *ngIf="materiaSeleccionada?.id === materia.id"
+                name="checkmark-circle"
+                class="check-icon">
+              </ion-icon>
+            </div>
+          </div>
+
+          <div class="empty-selection" *ngIf="materias.length === 0">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <p>No hay materias disponibles</p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="navigation-buttons">
+        <ion-button
+          expand="block"
+          [disabled]="!materiaSeleccionada"
+          (click)="siguientePaso()">
+          Siguiente
+          <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Paso 2: Seleccionar Docente -->
+    <div class="paso-content" *ngIf="pasoActual === 2">
+      <ion-card class="paso-card">
+        <ion-card-content>
+          <div class="paso-header">
+            <ion-icon name="people-outline" class="paso-icon"></ion-icon>
+            <div>
+              <h2>Selecciona un docente</h2>
+              <p>Docentes disponibles para {{ materiaSeleccionada?.nombre }}</p>
+            </div>
+          </div>
+
+          <div class="docentes-list">
+            <div *ngFor="let docente of docentesDisponibles"
+                 class="docente-card"
+                 [class.selected]="docenteSeleccionado?.id === docente.id"
+                 (click)="seleccionarDocente(docente)">
+              <div class="docente-avatar">
+                <ion-icon name="person"></ion-icon>
+              </div>
+              <div class="docente-info">
+                <h3>{{ docente.nombre }}</h3>
+                <p class="docente-email">{{ docente.email }}</p>
+                <div class="docente-disponibilidad">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>{{ docente.horariosDisponibles }} horarios disponibles</span>
+                </div>
+              </div>
+              <ion-icon
+                *ngIf="docenteSeleccionado?.id === docente.id"
+                name="checkmark-circle"
+                class="check-icon">
+              </ion-icon>
+            </div>
+          </div>
+
+          <div class="empty-selection" *ngIf="docentesDisponibles.length === 0">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <p>No hay docentes disponibles para esta materia</p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="navigation-buttons">
+        <ion-button
+          expand="block"
+          fill="outline"
+          (click)="pasoAnterior()">
+          <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+          Anterior
+        </ion-button>
+        <ion-button
+          expand="block"
+          [disabled]="!docenteSeleccionado"
+          (click)="siguientePaso()">
+          Siguiente
+          <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Paso 3: Seleccionar Fecha y Horario -->
+    <div class="paso-content" *ngIf="pasoActual === 3">
+      <ion-card class="paso-card">
+        <ion-card-content>
+          <div class="paso-header">
+            <ion-icon name="calendar-outline" class="paso-icon"></ion-icon>
+            <div>
+              <h2>Selecciona fecha y horario</h2>
+              <p>Horarios disponibles de {{ docenteSeleccionado?.nombre }}</p>
+            </div>
+          </div>
+
+          <!-- Selector de semana -->
+          <div class="semana-selector">
+            <ion-button fill="clear" (click)="cambiarSemana(-1)">
+              <ion-icon name="chevron-back-outline"></ion-icon>
+            </ion-button>
+            <span class="semana-texto">{{ semanaActualTexto }}</span>
+            <ion-button fill="clear" (click)="cambiarSemana(1)">
+              <ion-icon name="chevron-forward-outline"></ion-icon>
+            </ion-button>
+          </div>
+
+          <!-- Calendario de horarios disponibles -->
+          <div class="calendario-horarios">
+            <div *ngFor="let dia of diasSemana" class="dia-column">
+              <div class="dia-header">
+                <span class="dia-nombre">{{ dia.nombre }}</span>
+                <span class="dia-fecha">{{ dia.fecha }}</span>
+              </div>
+
+              <div class="horarios-dia">
+                <div *ngFor="let horario of dia.horarios"
+                     class="horario-slot"
+                     [class.disponible]="horario.disponible"
+                     [class.ocupado]="!horario.disponible"
+                     [class.selected]="horarioSeleccionado?.id === horario.id"
+                     [class.conflicto]="horario.conflicto"
+                     (click)="seleccionarHorario(horario, dia)">
+                  <ion-icon
+                    *ngIf="!horario.disponible"
+                    name="lock-closed-outline"
+                    class="lock-icon">
+                  </ion-icon>
+                  <span class="horario-texto">{{ horario.hora }}</span>
+                  <div class="conflicto-badge" *ngIf="horario.conflicto">
+                    <ion-icon name="alert-circle"></ion-icon>
+                    <span>Ya tienes tutoría</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="leyenda">
+            <div class="leyenda-item">
+              <div class="color-box disponible"></div>
+              <span>Disponible</span>
+            </div>
+            <div class="leyenda-item">
+              <div class="color-box ocupado"></div>
+              <span>No disponible</span>
+            </div>
+            <div class="leyenda-item">
+              <div class="color-box conflicto"></div>
+              <span>Tienes conflicto</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="navigation-buttons">
+        <ion-button
+          expand="block"
+          fill="outline"
+          (click)="pasoAnterior()">
+          <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+          Anterior
+        </ion-button>
+        <ion-button
+          expand="block"
+          [disabled]="!horarioSeleccionado || horarioSeleccionado?.conflicto"
+          (click)="siguientePaso()">
+          Siguiente
+          <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Paso 4: Confirmar y Enviar -->
+    <div class="paso-content" *ngIf="pasoActual === 4">
+      <ion-card class="paso-card">
+        <ion-card-content>
+          <div class="paso-header">
+            <ion-icon name="checkmark-circle-outline" class="paso-icon success"></ion-icon>
+            <div>
+              <h2>Confirmar solicitud</h2>
+              <p>Revisa los detalles antes de enviar</p>
+            </div>
+          </div>
+
+          <div class="resumen-solicitud">
+            <div class="resumen-item">
+              <div class="resumen-icon materia">
+                <ion-icon name="book-outline"></ion-icon>
+              </div>
+              <div class="resumen-info">
+                <span class="resumen-label">Materia</span>
+                <span class="resumen-valor">{{ materiaSeleccionada?.nombre }}</span>
+                <span class="resumen-detalle">{{ materiaSeleccionada?.codigo }}</span>
+              </div>
+            </div>
+
+            <div class="resumen-item">
+              <div class="resumen-icon docente">
+                <ion-icon name="person-outline"></ion-icon>
+              </div>
+              <div class="resumen-info">
+                <span class="resumen-label">Docente</span>
+                <span class="resumen-valor">{{ docenteSeleccionado?.nombre }}</span>
+                <span class="resumen-detalle">{{ docenteSeleccionado?.email }}</span>
+              </div>
+            </div>
+
+            <div class="resumen-item">
+              <div class="resumen-icon fecha">
+                <ion-icon name="calendar-outline"></ion-icon>
+              </div>
+              <div class="resumen-info">
+                <span class="resumen-label">Fecha</span>
+                <span class="resumen-valor">{{ fechaSeleccionadaTexto }}</span>
+              </div>
+            </div>
+
+            <div class="resumen-item">
+              <div class="resumen-icon horario">
+                <ion-icon name="time-outline"></ion-icon>
+              </div>
+              <div class="resumen-info">
+                <span class="resumen-label">Horario</span>
+                <span class="resumen-valor">{{ horarioSeleccionado?.hora }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campo opcional de motivo -->
+          <div class="motivo-section">
+            <ion-item lines="none">
+              <ion-textarea
+                label="Motivo (opcional)"
+                labelPlacement="floating"
+                placeholder="Describe brevemente el tema que necesitas revisar"
+                [(ngModel)]="motivoSolicitud"
+                rows="4"
+                maxlength="300">
+              </ion-textarea>
+            </ion-item>
+            <div class="char-counter">{{ motivoSolicitud.length }}/300</div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <div class="navigation-buttons">
+        <ion-button
+          expand="block"
+          fill="outline"
+          (click)="pasoAnterior()">
+          <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+          Anterior
+        </ion-button>
+        <ion-button
+          expand="block"
+          color="success"
+          (click)="enviarSolicitud()">
+          <ion-icon name="send-outline" slot="start"></ion-icon>
+          Enviar solicitud
+        </ion-button>
+      </div>
+    </div>
+
+  </div>
 </ion-content>

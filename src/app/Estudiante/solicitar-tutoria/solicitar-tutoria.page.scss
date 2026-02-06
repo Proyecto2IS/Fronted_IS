@@ -1,0 +1,671 @@
+ion-toolbar {
+  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.solicitar-container {
+  padding: 16px;
+  background-color: #f5f5f5;
+  min-height: 100%;
+}
+
+// Stepper de progreso
+.stepper-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 16px;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      color: #999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s;
+
+      ion-icon {
+        font-size: 24px;
+        color: white;
+      }
+    }
+
+    .step-label {
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      transition: color 0.3s;
+    }
+
+    &.active {
+      .step-number {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: scale(1.1);
+      }
+
+      .step-label {
+        color: #667eea;
+        font-weight: 600;
+      }
+    }
+
+    &.completed {
+      .step-number {
+        background: #4caf50;
+        color: white;
+      }
+
+      .step-label {
+        color: #4caf50;
+      }
+    }
+  }
+
+  .step-line {
+    flex: 1;
+    height: 2px;
+    background: #e0e0e0;
+    margin: 0 8px;
+    transition: background 0.3s;
+
+    &.completed {
+      background: #4caf50;
+    }
+  }
+}
+
+// Contenido de cada paso
+.paso-content {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.paso-card {
+  margin: 0 0 20px;
+  border-radius: 12px;
+
+  ion-card-content {
+    padding: 20px;
+
+    .paso-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #f0f0f0;
+
+      .paso-icon {
+        font-size: 40px;
+        color: #667eea;
+        flex-shrink: 0;
+
+        &.success {
+          color: #4caf50;
+        }
+      }
+
+      h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0 0 4px;
+        color: #333;
+      }
+
+      p {
+        font-size: 14px;
+        color: #666;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Grid de materias
+.materias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+
+  .materia-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+
+    &:hover {
+      background: #f0f0f0;
+    }
+
+    &.selected {
+      background: #e8f5e9;
+      border-color: #4caf50;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    .materia-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 26px;
+        color: white;
+      }
+    }
+
+    .materia-info {
+      flex: 1;
+
+      h3 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 4px;
+        color: #333;
+      }
+
+      p {
+        font-size: 12px;
+        color: #666;
+        margin: 0;
+      }
+    }
+
+    .check-icon {
+      font-size: 28px;
+      color: #4caf50;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+    }
+  }
+}
+
+// Lista de docentes
+.docentes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .docente-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+
+    &:hover {
+      background: #f0f0f0;
+    }
+
+    &.selected {
+      background: #e8f5e9;
+      border-color: #4caf50;
+      box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+    }
+
+    &:active {
+      transform: scale(0.99);
+    }
+
+    .docente-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 32px;
+        color: white;
+      }
+    }
+
+    .docente-info {
+      flex: 1;
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 4px;
+        color: #333;
+      }
+
+      .docente-email {
+        font-size: 12px;
+        color: #666;
+        margin: 0 0 6px;
+      }
+
+      .docente-disponibilidad {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        ion-icon {
+          font-size: 16px;
+          color: #4caf50;
+        }
+
+        span {
+          font-size: 12px;
+          color: #4caf50;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .check-icon {
+      font-size: 28px;
+      color: #4caf50;
+    }
+  }
+}
+
+// Selector de semana
+.semana-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+
+  ion-button {
+    --color: #667eea;
+  }
+
+  .semana-texto {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    min-width: 180px;
+    text-align: center;
+  }
+}
+
+// Calendario de horarios
+.calendario-horarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .dia-column {
+    .dia-header {
+      text-align: center;
+      padding: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px 8px 0 0;
+      margin-bottom: 8px;
+
+      .dia-nombre {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: white;
+      }
+
+      .dia-fecha {
+        display: block;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.9);
+      }
+    }
+
+    .horarios-dia {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .horario-slot {
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        border: 2px solid transparent;
+
+        &.disponible {
+          background: #e8f5e9;
+          border-color: #c8e6c9;
+
+          &:hover {
+            background: #c8e6c9;
+            transform: translateY(-2px);
+          }
+
+          &.selected {
+            background: #4caf50;
+            border-color: #2e7d32;
+
+            .horario-texto {
+              color: white;
+              font-weight: 600;
+            }
+          }
+        }
+
+        &.ocupado {
+          background: #f5f5f5;
+          border-color: #e0e0e0;
+          cursor: not-allowed;
+          opacity: 0.6;
+
+          .horario-texto {
+            color: #999;
+          }
+
+          .lock-icon {
+            font-size: 14px;
+            color: #999;
+            margin-right: 4px;
+          }
+        }
+
+        &.conflicto {
+          background: #ffebee;
+          border-color: #ffcdd2;
+          cursor: not-allowed;
+
+          .horario-texto {
+            color: #c62828;
+          }
+
+          .conflicto-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: center;
+            margin-top: 4px;
+
+            ion-icon {
+              font-size: 12px;
+              color: #f44336;
+            }
+
+            span {
+              font-size: 10px;
+              color: #c62828;
+            }
+          }
+        }
+
+        .horario-texto {
+          font-size: 12px;
+          font-weight: 500;
+          color: #333;
+        }
+      }
+    }
+  }
+}
+
+// Leyenda
+.leyenda {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+
+  .leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .color-box {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      border: 2px solid;
+
+      &.disponible {
+        background: #e8f5e9;
+        border-color: #c8e6c9;
+      }
+
+      &.ocupado {
+        background: #f5f5f5;
+        border-color: #e0e0e0;
+      }
+
+      &.conflicto {
+        background: #ffebee;
+        border-color: #ffcdd2;
+      }
+    }
+
+    span {
+      font-size: 12px;
+      color: #666;
+    }
+  }
+}
+
+// Resumen de solicitud
+.resumen-solicitud {
+  .resumen-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
+
+    .resumen-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 24px;
+        color: white;
+      }
+
+      &.materia {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      &.docente {
+        background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+      }
+
+      &.fecha {
+        background: linear-gradient(135deg, #2196f3 0%, #1565c0 100%);
+      }
+
+      &.horario {
+        background: linear-gradient(135deg, #ff9800 0%, #e65100 100%);
+      }
+    }
+
+    .resumen-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .resumen-label {
+        font-size: 12px;
+        color: #999;
+        text-transform: uppercase;
+        font-weight: 500;
+      }
+
+      .resumen-valor {
+        font-size: 16px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      .resumen-detalle {
+        font-size: 13px;
+        color: #666;
+      }
+    }
+  }
+}
+
+// Sección de motivo
+.motivo-section {
+  margin-top: 20px;
+
+  ion-item {
+    --background: #f8f9fa;
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+
+    ion-textarea {
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+    }
+  }
+
+  .char-counter {
+    text-align: right;
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+    padding: 0 12px;
+  }
+}
+
+// Estado vacío
+.empty-selection {
+  text-align: center;
+  padding: 40px 20px;
+
+  ion-icon {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
+  }
+}
+
+// Botones de navegación
+.navigation-buttons {
+  display: flex;
+  gap: 12px;
+
+  ion-button {
+    --border-radius: 8px;
+    height: 48px;
+    font-weight: 600;
+    text-transform: none;
+    margin: 0;
+    flex: 1;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .calendario-horarios {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .stepper-container {
+    padding: 16px 8px;
+
+    .step {
+      .step-number {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+      }
+
+      .step-label {
+        font-size: 10px;
+      }
+    }
+
+    .step-line {
+      margin: 0 4px;
+    }
+  }
+
+  .materias-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .calendario-horarios {
+    grid-template-columns: 1fr;
+  }
+
+  .leyenda {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .navigation-buttons {
+    flex-direction: column;
+  }
+}

@@ -1,13 +1,197 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>profesor-historial</ion-title>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/profesor"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Historial de Tutorías</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onExportarReporte()">
+        <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">profesor-historial</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="historial-container">
+
+    <!-- Estadísticas generales -->
+    <div class="stats-section">
+      <ion-card class="stat-summary-card">
+        <ion-card-content>
+          <div class="stat-summary-grid">
+            <div class="stat-item">
+              <ion-icon name="checkmark-done-outline" class="stat-icon completadas"></ion-icon>
+              <div class="stat-info">
+                <h3>{{ totalCompletadas }}</h3>
+                <p>Completadas</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <ion-icon name="close-circle-outline" class="stat-icon canceladas"></ion-icon>
+              <div class="stat-info">
+                <h3>{{ totalCanceladas }}</h3>
+                <p>Canceladas</p>
+              </div>
+            </div>
+            <div class="stat-item">
+              <ion-icon name="time-outline" class="stat-icon horas"></ion-icon>
+              <div class="stat-info">
+                <h3>{{ totalHoras }}</h3>
+                <p>Horas totales</p>
+              </div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Filtros -->
+    <ion-card class="filtros-card">
+      <ion-card-content>
+        <div class="filtros-header">
+          <ion-icon name="filter-outline" class="filter-icon"></ion-icon>
+          <h3>Filtrar historial</h3>
+        </div>
+
+        <div class="filtros-grid">
+          <div class="filtro-item">
+            <ion-item lines="none">
+              <ion-select
+                label="Período"
+                [(ngModel)]="filtroperiodo"
+                (ionChange)="onFiltroChange()">
+                <ion-select-option value="semana">Esta semana</ion-select-option>
+                <ion-select-option value="mes">Este mes</ion-select-option>
+                <ion-select-option value="trimestre">Último trimestre</ion-select-option>
+                <ion-select-option value="semestre">Este semestre</ion-select-option>
+                <ion-select-option value="todos">Todos</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <div class="filtro-item">
+            <ion-item lines="none">
+              <ion-select
+                label="Estado"
+                [(ngModel)]="filtroEstado"
+                (ionChange)="onFiltroChange()">
+                <ion-select-option value="todos">Todos</ion-select-option>
+                <ion-select-option value="completada">Completadas</ion-select-option>
+                <ion-select-option value="cancelada">Canceladas</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <div class="filtro-item full-width">
+            <ion-item lines="none">
+              <ion-select
+                label="Materia"
+                [(ngModel)]="filtroMateria"
+                (ionChange)="onFiltroChange()">
+                <ion-select-option value="todas">Todas las materias</ion-select-option>
+                <ion-select-option *ngFor="let materia of materias" [value]="materia.id">
+                  {{ materia.nombre }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Lista de tutorías -->
+    <div class="section-header">
+      <h3>Tutorías realizadas ({{ tutoriasFiltradas.length }})</h3>
+    </div>
+
+    <div class="tutorias-list" *ngIf="tutoriasFiltradas.length > 0; else noTutorias">
+      <ion-card *ngFor="let tutoria of tutoriasFiltradas" class="tutoria-card" [class.cancelada]="tutoria.estado === 'Cancelada'">
+        <ion-card-content>
+          <div class="tutoria-main">
+            <div class="tutoria-header">
+              <div class="materia-info">
+                <h4>{{ tutoria.materia }}</h4>
+                <ion-badge [color]="getTutoriaColor(tutoria.estado)">
+                  {{ tutoria.estado }}
+                </ion-badge>
+              </div>
+            </div>
+
+            <div class="estudiante-info">
+              <ion-icon name="person-outline"></ion-icon>
+              <span>{{ tutoria.estudiante }}</span>
+            </div>
+
+            <div class="detalles-grid">
+              <div class="detalle-item">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <span>{{ tutoria.fecha }}</span>
+              </div>
+              <div class="detalle-item">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>{{ tutoria.hora }}</span>
+              </div>
+            </div>
+
+            <div class="duracion-info" *ngIf="tutoria.duracion">
+              <ion-icon name="hourglass-outline"></ion-icon>
+              <span>{{ tutoria.duracion }} minutos</span>
+            </div>
+
+            <div class="motivo-cancelacion" *ngIf="tutoria.estado === 'Cancelada' && tutoria.motivoCancelacion">
+              <div class="motivo-header">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                <strong>Motivo de cancelación:</strong>
+              </div>
+              <p>{{ tutoria.motivoCancelacion }}</p>
+            </div>
+          </div>
+
+          <div class="tutoria-footer">
+            <ion-button fill="clear" size="small" (click)="verDetalles(tutoria)">
+              <ion-icon name="eye-outline" slot="start"></ion-icon>
+              Ver detalles
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <ng-template #noTutorias>
+      <ion-card class="empty-state">
+        <ion-card-content>
+          <ion-icon name="folder-open-outline" class="empty-icon"></ion-icon>
+          <p>No hay tutorías en el historial</p>
+          <p class="empty-subtitle">Ajusta los filtros o espera a completar más tutorías</p>
+        </ion-card-content>
+      </ion-card>
+    </ng-template>
+
+    <!-- Sección de exportar -->
+    <ion-card class="export-card" *ngIf="tutoriasFiltradas.length > 0">
+      <ion-card-content>
+        <div class="export-content">
+          <div class="export-info">
+            <ion-icon name="document-text-outline" class="export-icon"></ion-icon>
+            <div>
+              <h4>Exportar reporte</h4>
+              <p>Descarga el historial en formato PDF o Excel</p>
+            </div>
+          </div>
+          <div class="export-buttons">
+            <ion-button fill="outline" size="small" (click)="exportarPDF()">
+              <ion-icon name="document-outline" slot="start"></ion-icon>
+              PDF
+            </ion-button>
+            <ion-button fill="outline" size="small" (click)="exportarExcel()">
+              <ion-icon name="grid-outline" slot="start"></ion-icon>
+              Excel
+            </ion-button>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
 </ion-content>

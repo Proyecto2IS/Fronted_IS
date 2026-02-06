@@ -1,13 +1,144 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Profesor</ion-title>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Panel Docente</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onLogout()">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Profesor</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="profesor-container">
+
+    <!-- Sección de bienvenida -->
+    <div class="welcome-section">
+      <div class="avatar-container">
+        <ion-icon name="person-circle-outline" class="avatar-icon"></ion-icon>
+      </div>
+      <h2>Bienvenido, {{ nombreProfesor }}</h2>
+      <p class="role-badge">Docente</p>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="stats-grid">
+      <ion-card class="stat-card">
+        <ion-card-content>
+          <ion-icon name="time-outline" class="stat-icon pending"></ion-icon>
+          <h3>{{ solicitudesPendientes }}</h3>
+          <p>Pendientes</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="stat-card">
+        <ion-card-content>
+          <ion-icon name="calendar-outline" class="stat-icon confirmed"></ion-icon>
+          <h3>{{ tutoriasHoy }}</h3>
+          <p>Hoy</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="stat-card">
+        <ion-card-content>
+          <ion-icon name="checkmark-circle-outline" class="stat-icon total"></ion-icon>
+          <h3>{{ tutoriasSemanales }}</h3>
+          <p>Esta semana</p>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Menú de navegación -->
+    <div class="menu-grid">
+      <ion-card class="menu-card" (click)="navigateToDisponibilidad()">
+        <ion-card-content>
+          <div class="menu-icon-container disponibilidad">
+            <ion-icon name="time-outline"></ion-icon>
+          </div>
+          <h3>Disponibilidad</h3>
+          <p>Gestionar horarios</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="menu-card" (click)="navigateToSolicitudes()">
+        <ion-card-content>
+          <div class="menu-icon-container solicitudes">
+            <ion-icon name="mail-outline"></ion-icon>
+          </div>
+          <h3>Solicitudes</h3>
+          <p>Revisar peticiones</p>
+          <ion-badge *ngIf="solicitudesPendientes > 0" class="notification-badge">
+            {{ solicitudesPendientes }}
+          </ion-badge>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="menu-card" (click)="navigateToHistorial()">
+        <ion-card-content>
+          <div class="menu-icon-container historial">
+            <ion-icon name="document-text-outline"></ion-icon>
+          </div>
+          <h3>Historial</h3>
+          <p>Ver tutorías pasadas</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="menu-card" (click)="navigateToCalendario()">
+        <ion-card-content>
+          <div class="menu-icon-container calendario">
+            <ion-icon name="calendar-outline"></ion-icon>
+          </div>
+          <h3>Calendario</h3>
+          <p>Vista completa</p>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Próximas tutorías -->
+    <div class="section-header">
+      <h3>Próximas Tutorías</h3>
+    </div>
+
+    <div class="tutorias-list" *ngIf="proximasTutorias.length > 0; else noTutorias">
+      <ion-card *ngFor="let tutoria of proximasTutorias" class="tutoria-card">
+        <ion-card-content>
+          <div class="tutoria-header">
+            <div class="tutoria-info">
+              <h4>{{ tutoria.materia }}</h4>
+              <p class="estudiante-name">
+                <ion-icon name="person-outline"></ion-icon>
+                {{ tutoria.estudiante }}
+              </p>
+            </div>
+            <ion-badge [color]="getTutoriaColor(tutoria.estado)">
+              {{ tutoria.estado }}
+            </ion-badge>
+          </div>
+          <div class="tutoria-detalles">
+            <p>
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ tutoria.fecha }}
+            </p>
+            <p>
+              <ion-icon name="time-outline"></ion-icon>
+              {{ tutoria.hora }}
+            </p>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <ng-template #noTutorias>
+      <ion-card class="empty-state">
+        <ion-card-content>
+          <ion-icon name="calendar-clear-outline" class="empty-icon"></ion-icon>
+          <p>No tienes tutorías programadas</p>
+        </ion-card-content>
+      </ion-card>
+    </ng-template>
+
+  </div>
 </ion-content>
