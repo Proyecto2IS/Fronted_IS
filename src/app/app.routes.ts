@@ -57,5 +57,8 @@ export const routes: Routes = [
     path: 'profesor-historial',
     loadComponent: () => import('./Profesor/profesor-historial/profesor-historial.page').then( m => m.ProfesorHistorialPage)
   },
-
+  {
+    path: 'calendario',
+    loadComponent: () => import('./Shared/calendario/calendario.component').then( m => m.CalendarioComponent)
+  }
 ];

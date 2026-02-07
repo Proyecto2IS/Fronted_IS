@@ -4,16 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
 
 import { Router } from '@angular/router';
-import {
-  IonButtons,
-  IonBackButton,
-  IonButton,
-  IonIcon,
-  IonCard,
-  IonCardContent,
-  IonItem,
-  IonTextarea
-} from '@ionic/angular/standalone';
+import {IonButtons,IonBackButton,IonButton,IonIcon,IonCard,IonCardContent,IonItem,IonTextarea} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   checkmark,

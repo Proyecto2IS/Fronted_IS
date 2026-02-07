@@ -1,3 +1,203 @@
-<p>
-  calendario works!
-</p>
+<div class="calendario-container">
+
+  <!-- Header del calendario -->
+  <div class="calendario-header">
+    <div class="mes-navegacion">
+      <ion-button fill="clear" (click)="mesAnterior()">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </ion-button>
+      <h2>{{ mesActualTexto }}</h2>
+      <ion-button fill="clear" (click)="mesSiguiente()">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <div class="acciones-header">
+      <ion-button fill="clear" size="small" (click)="irHoy()">
+        <ion-icon name="today-outline" slot="start"></ion-icon>
+        Hoy
+      </ion-button>
+      <ion-button fill="clear" size="small" (click)="cambiarVista()">
+        <ion-icon [name]="vistaActual === 'mes' ? 'calendar-outline' : 'list-outline'" slot="start"></ion-icon>
+        {{ vistaActual === 'mes' ? 'Mes' : 'Lista' }}
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Vista de Mes (Calendario Grid) -->
+  <div class="calendario-body" *ngIf="vistaActual === 'mes'">
+
+    <!-- Días de la semana -->
+    <div class="dias-semana">
+      <div class="dia-header" *ngFor="let dia of diasSemanaHeader">
+        {{ dia }}
+      </div>
+    </div>
+
+    <!-- Grid de días del mes -->
+    <div class="dias-grid">
+      <div *ngFor="let dia of diasDelMes"
+           class="dia-celda"
+           [class.otro-mes]="!dia.delMesActual"
+           [class.hoy]="dia.esHoy"
+           [class.seleccionado]="dia.seleccionado"
+           [class.tiene-eventos]="dia.eventos.length > 0"
+           (click)="seleccionarDia(dia)">
+
+        <div class="dia-numero">
+          {{ dia.numero }}
+        </div>
+
+        <!-- Indicadores de eventos -->
+        <div class="eventos-indicadores" *ngIf="dia.eventos.length > 0">
+          <div *ngFor="let evento of dia.eventos.slice(0, 3)"
+               class="evento-dot"
+               [class.confirmada]="evento.estado === 'Confirmada'"
+               [class.pendiente]="evento.estado === 'Pendiente'"
+               [class.cancelada]="evento.estado === 'Cancelada'"
+               [title]="evento.titulo">
+          </div>
+          <span class="mas-eventos" *ngIf="dia.eventos.length > 3">
+            +{{ dia.eventos.length - 3 }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista de Lista -->
+  <div class="calendario-lista" *ngIf="vistaActual === 'lista'">
+    <div class="eventos-agrupados">
+      <div *ngFor="let grupo of eventosAgrupados" class="grupo-fecha">
+        <div class="grupo-header">
+          <div class="fecha-badge">
+            <span class="dia-numero">{{ grupo.dia }}</span>
+            <span class="dia-mes">{{ grupo.mes }}</span>
+          </div>
+          <div class="fecha-info">
+            <h3>{{ grupo.diaSemana }}</h3>
+            <p>{{ grupo.cantidad }} {{ grupo.cantidad === 1 ? 'tutoría' : 'tutorías' }}</p>
+          </div>
+        </div>
+
+        <div class="eventos-del-dia">
+          <div *ngFor="let evento of grupo.eventos"
+               class="evento-card"
+               [class.confirmada]="evento.estado === 'Confirmada'"
+               [class.pendiente]="evento.estado === 'Pendiente'"
+               [class.cancelada]="evento.estado === 'Cancelada'"
+               (click)="verDetalleEvento(evento)">
+
+            <div class="evento-hora">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ evento.hora }}</span>
+            </div>
+
+            <div class="evento-info">
+              <h4>{{ evento.titulo }}</h4>
+              <p class="evento-subtitulo">{{ evento.subtitulo }}</p>
+              <div class="evento-detalles">
+                <span class="evento-materia">
+                  <ion-icon name="book-outline"></ion-icon>
+                  {{ evento.materia }}
+                </span>
+              </div>
+            </div>
+
+            <div class="evento-estado">
+              <ion-badge [color]="getColorEstado(evento.estado)">
+                {{ evento.estado }}
+              </ion-badge>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-eventos" *ngIf="eventosAgrupados.length === 0">
+        <ion-icon name="calendar-clear-outline"></ion-icon>
+        <p>No hay tutorías programadas este mes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalles del día seleccionado (Modal bottom sheet) -->
+  <div class="dia-detalle-overlay" *ngIf="diaSeleccionado" (click)="cerrarDetalle()">
+    <div class="dia-detalle-sheet" (click)="$event.stopPropagation()">
+      <div class="sheet-handle"></div>
+
+      <div class="detalle-header">
+        <div class="detalle-fecha">
+          <h3>{{ diaSeleccionado.diaSemana }}</h3>
+          <p>{{ diaSeleccionado.fechaCompleta }}</p>
+        </div>
+        <ion-button fill="clear" (click)="cerrarDetalle()">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="detalle-eventos">
+        <div *ngFor="let evento of diaSeleccionado.eventos"
+             class="evento-detalle-card"
+             [class.confirmada]="evento.estado === 'Confirmada'"
+             [class.pendiente]="evento.estado === 'Pendiente'"
+             [class.cancelada]="evento.estado === 'Cancelada'">
+
+          <div class="evento-detalle-header">
+            <div class="evento-detalle-hora">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ evento.hora }}</span>
+            </div>
+            <ion-badge [color]="getColorEstado(evento.estado)">
+              {{ evento.estado }}
+            </ion-badge>
+          </div>
+
+          <div class="evento-detalle-body">
+            <h4>{{ evento.titulo }}</h4>
+            <p class="evento-detalle-subtitulo">{{ evento.subtitulo }}</p>
+
+            <div class="evento-detalle-info">
+              <div class="info-item">
+                <ion-icon name="book-outline"></ion-icon>
+                <span>{{ evento.materia }}</span>
+              </div>
+              <div class="info-item" *ngIf="evento.duracion">
+                <ion-icon name="hourglass-outline"></ion-icon>
+                <span>{{ evento.duracion }} min</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="evento-detalle-footer">
+            <ion-button fill="clear" size="small" (click)="verDetalleEvento(evento)">
+              <ion-icon name="eye-outline" slot="start"></ion-icon>
+              Ver detalles
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="empty-eventos-dia" *ngIf="!diaSeleccionado.eventos || diaSeleccionado.eventos.length === 0">
+          <ion-icon name="calendar-clear-outline"></ion-icon>
+          <p>No hay tutorías programadas para este día</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leyenda -->
+  <div class="calendario-leyenda">
+    <div class="leyenda-item">
+      <div class="leyenda-dot confirmada"></div>
+      <span>Confirmada</span>
+    </div>
+    <div class="leyenda-item">
+      <div class="leyenda-dot pendiente"></div>
+      <span>Pendiente</span>
+    </div>
+    <div class="leyenda-item">
+      <div class="leyenda-dot cancelada"></div>
+      <span>Cancelada</span>
+    </div>
+  </div>
+
+</div>

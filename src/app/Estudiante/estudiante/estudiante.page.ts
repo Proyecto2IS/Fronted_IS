@@ -2,99 +2,33 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonCardContent } from '@ionic/angular/standalone';
-
+import { TutoriasService } from '../../Services/tutoria.service';
+import { TutoriaInterface } from 'src/app/Interfaces/tutoria.interface';
 import { Router } from '@angular/router';
-import {
-  IonButtons,
-  IonMenuButton,
-  IonButton,
-  IonIcon,
-  IonCard,
-  IonBadge
-} from '@ionic/angular/standalone';
+import {IonButtons,IonMenuButton,IonButton,IonIcon,IonCard,IonBadge} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import {
-  personCircleOutline,
-  logOutOutline,
-  hourglassOutline,
-  checkmarkDoneOutline,
-  statsChartOutline,
-  addCircleOutline,
-  chevronForwardOutline,
-  mailOutline,
-  bookOutline,
-  calendarOutline,
-  documentTextOutline,
-  personOutline,
-  timeOutline,
-  calendarClearOutline
-} from 'ionicons/icons';
-
-interface Tutoria {
-  id: number;
-  materia: string;
-  docente: string;
-  fecha: string;
-  hora: string;
-  estado: string;
-}
-
+import {personCircleOutline,logOutOutline,hourglassOutline,checkmarkDoneOutline,statsChartOutline,addCircleOutline,chevronForwardOutline,mailOutline,bookOutline,calendarOutline,documentTextOutline,personOutline,timeOutline,calendarClearOutline} from 'ionicons/icons';
 @Component({
   selector: 'app-estudiante',
   templateUrl: './estudiante.page.html',
   styleUrls: ['./estudiante.page.scss'],
   standalone: true,
-   imports: [
-    CommonModule,
-    FormsModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonContent,
-    IonButtons,
-    IonMenuButton,
-    IonButton,
-    IonIcon,
-    IonCard,
-    IonCardContent,
-    IonBadge
-  ]
+   imports: [CommonModule,FormsModule,IonHeader,IonToolbar,IonTitle,IonContent,IonButtons,IonMenuButton,IonButton,IonIcon,IonCard,IonCardContent,IonBadge]
 })
 export class EstudiantePage implements OnInit {
-
+tutorias: TutoriaInterface[] = [];
  nombreEstudiante: string = '';
-  solicitudesPendientes: number = 2;
-  tutoriasConfirmadas: number = 4;
-  totalTutorias: number = 15;
+ solicitudesPendientes = 0;
+tutoriasConfirmadas = 0;
+totalTutorias = 0;
 
-  proximasTutorias: Tutoria[] = [
-    {
-      id: 1,
-      materia: 'Cálculo Diferencial',
-      docente: 'Dr. Juan Pérez',
-      fecha: '2026-02-06',
-      hora: '10:00 AM - 11:00 AM',
-      estado: 'Confirmada'
-    },
-    {
-      id: 2,
-      materia: 'Programación I',
-      docente: 'Ing. María Rodríguez',
-      fecha: '2026-02-07',
-      hora: '02:00 PM - 03:00 PM',
-      estado: 'Pendiente'
-    },
-    {
-      id: 3,
-      materia: 'Física I',
-      docente: 'Dr. Carlos Mendoza',
-      fecha: '2026-02-08',
-      hora: '09:00 AM - 10:00 AM',
-      estado: 'Confirmada'
-    }
-  ];
 
-  constructor(private router: Router) {
+  proximasTutorias: any[] = [];
+
+  constructor(
+    private router: Router,
+  private tutoriaService: TutoriasService,
+) {
     // Registrar los íconos
     addIcons({
       'person-circle-outline': personCircleOutline,
@@ -114,41 +48,119 @@ export class EstudiantePage implements OnInit {
     });
   }
 
-  ngOnInit() {
-    const usuarioStorage = localStorage.getItem('usuario');
+ngOnInit() {
+
+  const usuarioStorage = localStorage.getItem('usuario');
 
   if (usuarioStorage) {
     const usuario = JSON.parse(usuarioStorage);
+    this.nombreEstudiante = usuario.nombre;
+  }
 
-    // Ajusta según cómo venga tu backend
-    this.nombreEstudiante = usuario.nombre; 
-    
-  }
-  }
+  this.cargarTutorias();
+  this.cargarEstadisticas();
+
+}
+cargarEstadisticas() {
+  this.tutoriaService.obtenerTutoriasEstudiante().subscribe({
+    next: (data) => {
+
+      this.tutorias = data;
+
+      // 🔹 Total
+      this.totalTutorias = data.length;
+
+      // 🔹 Pendientes
+      this.solicitudesPendientes = data.filter(t =>
+        t.estado === 'pendiente'
+      ).length;
+
+      // 🔹 Confirmadas
+      this.tutoriasConfirmadas = data.filter(t =>
+        t.estado === 'confirmada'
+      ).length;
+
+      // 🔹 Próximas tutorías (confirmadas y futuras)
+      const hoy = new Date();
+
+      this.proximasTutorias = data
+        .filter(t =>
+          t.estado === 'confirmada' &&
+          new Date(t.fecha) >= hoy
+        )
+        .map(t => ({
+          id: t.id,
+          materia: 'Materia', // si no viene el nombre debes mapearlo desde backend
+          docente: 'Docente', // igual aquí
+          estado: this.formatearEstado(t.estado),
+          fecha: t.fecha,
+          hora: t.hora_inicio
+        }));
+
+    },
+    error: (err) => {
+      console.error('Error cargando estadísticas', err);
+    }
+  });
+}
+
+cargarTutorias() {
+
+
+  this.tutoriaService.obtenerTutoriasEstudiante()
+    .subscribe({
+      next: (data) => {
+
+        // Filtrar próximas (no finalizadas) y transformar para la vista
+        const activas = data.filter(t => t.estado !== 'finalizada');
+        this.proximasTutorias = activas.map(t => ({
+        id: t.id!,
+        fecha: t.fecha,
+        hora: `${t.hora_inicio} - ${t.hora_fin}`,
+        estado: this.formatearEstado(t.estado),
+        docente_id: t.docente_id
+      }));
+
+
+      },
+      error: (err) => {
+        console.error('Error cargando tutorías', err);
+      }
+    });
+}
+
+formatearEstado(estado?: string): string {
+  if (!estado) return 'Pendiente';
+
+  const map: any = {
+    pendiente: 'Pendiente',
+    confirmada: 'Confirmada',
+    cancelada: 'Cancelada',
+    rechazada: 'Rechazada',
+    finalizada: 'Completada'
+  };
+
+  return map[estado] || estado;
+}
 
   navigateToSolicitar() {
     console.log('Navegar a solicitar tutoría');
-    // this.router.navigate(['/estudiante/solicitar-tutoria']);
+    this.router.navigate(['solicitar-tutoria']);
   }
 
   navigateToMisSolicitudes() {
     console.log('Navegar a mis solicitudes');
-    // this.router.navigate(['/estudiante/estudiante-solicitudes']);
+    this.router.navigate(['/estudiante-solicitudes']);
   }
 
   navigateToHistorial() {
     console.log('Navegar a historial');
-    // this.router.navigate(['/estudiante/estudiante-historial']);
+    this.router.navigate(['/estudiante-historial']);
   }
 
   navigateToCalendario() {
     console.log('Navegar a calendario');
-    // this.router.navigate(['/estudiante/calendario']);
-  }
-
-  navigateToReportes() {
-    console.log('Navegar a reportes');
-    // this.router.navigate(['/estudiante/reportes']);
+    this.router.navigate(['/calendario']);
   }
 
   getTutoriaColor(estado: string): string {

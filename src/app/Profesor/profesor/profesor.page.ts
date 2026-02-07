@@ -108,7 +108,7 @@ export class ProfesorPage implements OnInit {
   }
 
   ngOnInit() {
- 
+
   }
   ionViewWillEnter() {
   const usuarioStorage = localStorage.getItem('usuario');
@@ -128,7 +128,7 @@ export class ProfesorPage implements OnInit {
 
   navigateToSolicitudes() {
     console.log('Navegar a solicitudes');
-    // this.router.navigate(['/profesor/solicitudes']);
+    // this.router.navigate(['/profesor-solicitudes']);
   }
 
   navigateToHistorial() {

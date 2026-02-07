@@ -1,14 +1,322 @@
 import { Component, OnInit } from '@angular/core';
 
+import { Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { IonButton, IonIcon, IonBadge } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import {
+  chevronBackOutline,
+  chevronForwardOutline,
+  todayOutline,
+  calendarOutline,
+  listOutline,
+  timeOutline,
+  bookOutline,
+  hourglassOutline,
+  eyeOutline,
+  calendarClearOutline,
+  closeOutline
+} from 'ionicons/icons';
+
+export interface EventoCalendario {
+  id: number;
+  titulo: string;
+  subtitulo: string;
+  materia: string;
+  fecha: Date;
+  hora: string;
+  duracion?: number;
+  estado: 'Confirmada' | 'Pendiente' | 'Cancelada';
+}
+
+interface DiaCalendario {
+  numero: number;
+  delMesActual: boolean;
+  esHoy: boolean;
+  seleccionado: boolean;
+  fecha: Date;
+  eventos: EventoCalendario[];
+  diaSemana?: string;
+  fechaCompleta?: string;
+}
+
+interface EventoAgrupado {
+  dia: string;
+  mes: string;
+  diaSemana: string;
+  cantidad: number;
+  eventos: EventoCalendario[];
+}
 @Component({
   selector: 'app-calendario',
   templateUrl: './calendario.component.html',
   styleUrls: ['./calendario.component.scss'],
+  imports: [
+    CommonModule,
+    IonButton,
+    IonIcon,
+    IonBadge
+  ]
 })
 export class CalendarioComponent  implements OnInit {
 
-  constructor() { }
+  @Input() eventos: EventoCalendario[] = [];
+  @Output() eventoSeleccionado = new EventEmitter<EventoCalendario>();
 
-  ngOnInit() {}
+  vistaActual: 'mes' | 'lista' = 'mes';
+  mesActual: Date = new Date();
+  mesActualTexto: string = '';
 
+  diasSemanaHeader: string[] = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  diasDelMes: DiaCalendario[] = [];
+
+  diaSeleccionado: DiaCalendario | null = null;
+  eventosAgrupados: EventoAgrupado[] = [];
+
+  constructor() {
+    // Registrar íconos
+    addIcons({
+      'chevron-back-outline': chevronBackOutline,
+      'chevron-forward-outline': chevronForwardOutline,
+      'today-outline': todayOutline,
+      'calendar-outline': calendarOutline,
+      'list-outline': listOutline,
+      'time-outline': timeOutline,
+      'book-outline': bookOutline,
+      'hourglass-outline': hourglassOutline,
+      'eye-outline': eyeOutline,
+      'calendar-clear-outline': calendarClearOutline,
+      'close-outline': closeOutline
+    });
+  }
+
+  ngOnInit() {
+    this.generarCalendario();
+    this.cargarDatosEjemplo();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['eventos'] && !changes['eventos'].firstChange) {
+      this.generarCalendario();
+      this.agruparEventosPorFecha();
+    }
+  }
+
+  cargarDatosEjemplo() {
+    // Datos de ejemplo para visualización
+    const hoy = new Date();
+
+    this.eventos = [
+      {
+        id: 1,
+        titulo: 'Tutoría de Cálculo',
+        subtitulo: 'Dr. Juan Pérez',
+        materia: 'Cálculo Diferencial',
+        fecha: new Date(2026, 1, 10, 10, 0), // 10 Feb 2026, 10:00
+        hora: '10:00 - 11:00',
+        duracion: 60,
+        estado: 'Confirmada'
+      },
+      {
+        id: 2,
+        titulo: 'Tutoría de Programación',
+        subtitulo: 'Ing. María Rodríguez',
+        materia: 'Programación I',
+        fecha: new Date(2026, 1, 10, 14, 0), // 10 Feb 2026, 14:00
+        hora: '14:00 - 15:00',
+        duracion: 60,
+        estado: 'Pendiente'
+      },
+      {
+        id: 3,
+        titulo: 'Tutoría de Física',
+        subtitulo: 'Dr. Carlos Mendoza',
+        materia: 'Física I',
+        fecha: new Date(2026, 1, 12, 9, 0), // 12 Feb 2026, 09:00
+        hora: '09:00 - 10:00',
+        duracion: 60,
+        estado: 'Confirmada'
+      },
+      {
+        id: 4,
+        titulo: 'Tutoría de Álgebra',
+        subtitulo: 'Dra. Ana Torres',
+        materia: 'Álgebra Lineal',
+        fecha: new Date(2026, 1, 13, 15, 0), // 13 Feb 2026, 15:00
+        hora: '15:00 - 16:00',
+        duracion: 60,
+        estado: 'Confirmada'
+      },
+      {
+        id: 5,
+        titulo: 'Tutoría de Estadística',
+        subtitulo: 'Lic. Roberto Vega',
+        materia: 'Estadística',
+        fecha: new Date(2026, 1, 15, 11, 0), // 15 Feb 2026, 11:00
+        hora: '11:00 - 12:00',
+        duracion: 60,
+        estado: 'Cancelada'
+      },
+      {
+        id: 6,
+        titulo: 'Tutoría de Cálculo',
+        subtitulo: 'Dr. Juan Pérez',
+        materia: 'Cálculo Integral',
+        fecha: new Date(2026, 1, 17, 10, 0), // 17 Feb 2026, 10:00
+        hora: '10:00 - 11:00',
+        duracion: 60,
+        estado: 'Confirmada'
+      }
+    ];
+
+    this.generarCalendario();
+    this.agruparEventosPorFecha();
+  }
+
+  generarCalendario() {
+    const year = this.mesActual.getFullYear();
+    const month = this.mesActual.getMonth();
+
+    // Actualizar texto del mes
+    this.mesActualTexto = this.mesActual.toLocaleDateString('es-ES', {
+      month: 'long',
+      year: 'numeric'
+    });
+    this.mesActualTexto = this.mesActualTexto.charAt(0).toUpperCase() + this.mesActualTexto.slice(1);
+
+    // Primer y último día del mes
+    const primerDia = new Date(year, month, 1);
+    const ultimoDia = new Date(year, month + 1, 0);
+
+    // Días a mostrar del mes anterior
+    const diasAnterior = primerDia.getDay();
+    const inicioCalendario = new Date(primerDia);
+    inicioCalendario.setDate(primerDia.getDate() - diasAnterior);
+
+    // Generar 42 días (6 semanas)
+    this.diasDelMes = [];
+    const fechaActual = new Date(inicioCalendario);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 42; i++) {
+      const esMesActual = fechaActual.getMonth() === month;
+      const esHoy = fechaActual.toDateString() === hoy.toDateString();
+
+      // Buscar eventos para este día
+      const eventosDelDia = this.eventos.filter(evento => {
+        const fechaEvento = new Date(evento.fecha);
+        fechaEvento.setHours(0, 0, 0, 0);
+        const fechaDia = new Date(fechaActual);
+        fechaDia.setHours(0, 0, 0, 0);
+        return fechaEvento.getTime() === fechaDia.getTime();
+      });
+
+      this.diasDelMes.push({
+        numero: fechaActual.getDate(),
+        delMesActual: esMesActual,
+        esHoy: esHoy,
+        seleccionado: false,
+        fecha: new Date(fechaActual),
+        eventos: eventosDelDia
+      });
+
+      fechaActual.setDate(fechaActual.getDate() + 1);
+    }
+  }
+
+  agruparEventosPorFecha() {
+    // Agrupar eventos por fecha para la vista de lista
+    const grupos = new Map<string, EventoCalendario[]>();
+
+    this.eventos.forEach(evento => {
+      const fecha = new Date(evento.fecha);
+      fecha.setHours(0, 0, 0, 0);
+      const key = fecha.toISOString();
+
+      if (!grupos.has(key)) {
+        grupos.set(key, []);
+      }
+      grupos.get(key)!.push(evento);
+    });
+
+    this.eventosAgrupados = Array.from(grupos.entries())
+      .map(([key, eventos]) => {
+        const fecha = new Date(key);
+        return {
+          dia: fecha.getDate().toString().padStart(2, '0'),
+          mes: fecha.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase(),
+          diaSemana: fecha.toLocaleDateString('es-ES', { weekday: 'long' }),
+          cantidad: eventos.length,
+          eventos: eventos.sort((a, b) => a.fecha.getTime() - b.fecha.getTime())
+        };
+      })
+      .sort((a, b) => {
+        const fechaA = new Date(a.eventos[0].fecha);
+        const fechaB = new Date(b.eventos[0].fecha);
+        return fechaA.getTime() - fechaB.getTime();
+      });
+  }
+
+  mesAnterior() {
+    this.mesActual = new Date(this.mesActual.getFullYear(), this.mesActual.getMonth() - 1, 1);
+    this.generarCalendario();
+  }
+
+  mesSiguiente() {
+    this.mesActual = new Date(this.mesActual.getFullYear(), this.mesActual.getMonth() + 1, 1);
+    this.generarCalendario();
+  }
+
+  irHoy() {
+    this.mesActual = new Date();
+    this.generarCalendario();
+  }
+
+  cambiarVista() {
+    this.vistaActual = this.vistaActual === 'mes' ? 'lista' : 'mes';
+
+    if (this.vistaActual === 'lista') {
+      this.agruparEventosPorFecha();
+    }
+  }
+
+  seleccionarDia(dia: DiaCalendario) {
+    // Deseleccionar todos los días
+    this.diasDelMes.forEach(d => d.seleccionado = false);
+
+    // Seleccionar el día clickeado
+    dia.seleccionado = true;
+
+    // Preparar información del día para el detalle
+    dia.diaSemana = dia.fecha.toLocaleDateString('es-ES', { weekday: 'long' });
+    dia.diaSemana = dia.diaSemana.charAt(0).toUpperCase() + dia.diaSemana.slice(1);
+    dia.fechaCompleta = dia.fecha.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    this.diaSeleccionado = dia;
+    console.log('Día seleccionado:', dia);
+  }
+
+  cerrarDetalle() {
+    this.diaSeleccionado = null;
+    this.diasDelMes.forEach(d => d.seleccionado = false);
+  }
+
+  verDetalleEvento(evento: EventoCalendario) {
+    console.log('Ver detalle de evento:', evento);
+    this.eventoSeleccionado.emit(evento);
+  }
+
+  getColorEstado(estado: string): string {
+    const colores: { [key: string]: string } = {
+      'Confirmada': 'success',
+      'Pendiente': 'warning',
+      'Cancelada': 'danger'
+    };
+    return colores[estado] || 'medium';
+  }
 }

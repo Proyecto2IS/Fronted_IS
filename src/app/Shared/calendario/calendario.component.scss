@@ -1,0 +1,660 @@
+.calendario-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+// Header del calendario
+.calendario-header {
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+
+  .mes-navegacion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    ion-button {
+      --color: white;
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      text-align: center;
+      flex: 1;
+    }
+  }
+
+  .acciones-header {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+
+    ion-button {
+      --color: rgba(255, 255, 255, 0.9);
+      font-size: 13px;
+      text-transform: none;
+    }
+  }
+}
+
+// Días de la semana (headers)
+.dias-semana {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+
+  .dia-header {
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+  }
+}
+
+// Grid de días
+.calendario-body {
+  padding: 8px;
+}
+
+.dias-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+
+  .dia-celda {
+    aspect-ratio: 1;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 8px 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &:hover {
+      background: #f8f9fa;
+      border-color: #667eea;
+    }
+
+    &.otro-mes {
+      opacity: 0.4;
+      background: #fafafa;
+    }
+
+    &.hoy {
+      background: #e3f2fd;
+      border-color: #2196f3;
+
+      .dia-numero {
+        background: #2196f3;
+        color: white;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    &.seleccionado {
+      background: #f3e5f5;
+      border-color: #667eea;
+      border-width: 2px;
+    }
+
+    &.tiene-eventos {
+      background: #f5f5f5;
+    }
+
+    .dia-numero {
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .eventos-indicadores {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      justify-content: center;
+      margin-top: auto;
+
+      .evento-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+
+        &.confirmada {
+          background: #4caf50;
+        }
+
+        &.pendiente {
+          background: #ff9800;
+        }
+
+        &.cancelada {
+          background: #f44336;
+        }
+      }
+
+      .mas-eventos {
+        font-size: 9px;
+        color: #666;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+// Vista de lista
+.calendario-lista {
+  padding: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+
+  .eventos-agrupados {
+    .grupo-fecha {
+      margin-bottom: 20px;
+
+      .grupo-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+
+        .fecha-badge {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          width: 60px;
+          height: 60px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 10px;
+          flex-shrink: 0;
+
+          .dia-numero {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            line-height: 1;
+          }
+
+          .dia-mes {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+          }
+        }
+
+        .fecha-info {
+          h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 4px;
+            color: #333;
+          }
+
+          p {
+            font-size: 13px;
+            color: #666;
+            margin: 0;
+          }
+        }
+      }
+
+      .eventos-del-dia {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-left: 8px;
+        border-left: 3px solid #e0e0e0;
+        margin-left: 30px;
+
+        .evento-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border-left: 4px solid;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &.confirmada {
+            border-left-color: #4caf50;
+            background: #f1f8f1;
+
+            &:hover {
+              background: #e8f5e9;
+            }
+          }
+
+          &.pendiente {
+            border-left-color: #ff9800;
+            background: #fff8f1;
+
+            &:hover {
+              background: #fff3e0;
+            }
+          }
+
+          &.cancelada {
+            border-left-color: #f44336;
+            background: #fff1f1;
+            opacity: 0.8;
+
+            &:hover {
+              background: #ffebee;
+            }
+          }
+
+          &:active {
+            transform: scale(0.98);
+          }
+
+          .evento-hora {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+            min-width: 60px;
+
+            ion-icon {
+              font-size: 18px;
+              color: #667eea;
+            }
+
+            span {
+              font-size: 11px;
+              font-weight: 600;
+              color: #333;
+              white-space: nowrap;
+            }
+          }
+
+          .evento-info {
+            flex: 1;
+
+            h4 {
+              font-size: 14px;
+              font-weight: 600;
+              margin: 0 0 4px;
+              color: #333;
+            }
+
+            .evento-subtitulo {
+              font-size: 12px;
+              color: #666;
+              margin: 0 0 6px;
+            }
+
+            .evento-detalles {
+              display: flex;
+              gap: 12px;
+
+              .evento-materia {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 11px;
+                color: #667eea;
+
+                ion-icon {
+                  font-size: 14px;
+                }
+              }
+            }
+          }
+
+          .evento-estado {
+            ion-badge {
+              font-size: 10px;
+            }
+          }
+        }
+      }
+    }
+
+    .empty-eventos {
+      text-align: center;
+      padding: 60px 20px;
+
+      ion-icon {
+        font-size: 80px;
+        color: #ccc;
+        margin-bottom: 16px;
+      }
+
+      p {
+        font-size: 14px;
+        color: #999;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Detalle del día (Bottom Sheet)
+.dia-detalle-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  animation: fadeIn 0.3s ease;
+}
+
+.dia-detalle-sheet {
+  width: 100%;
+  max-height: 70vh;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+  display: flex;
+  flex-direction: column;
+
+  .sheet-handle {
+    width: 40px;
+    height: 4px;
+    background: #ddd;
+    border-radius: 2px;
+    margin: 12px auto 8px;
+  }
+
+  .detalle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+
+    .detalle-fecha {
+      h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 4px;
+        color: #333;
+      }
+
+      p {
+        font-size: 13px;
+        color: #666;
+        margin: 0;
+      }
+    }
+
+    ion-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+  }
+
+  .detalle-eventos {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+
+    .evento-detalle-card {
+      margin-bottom: 12px;
+      padding: 16px;
+      border-radius: 10px;
+      border-left: 4px solid;
+
+      &.confirmada {
+        border-left-color: #4caf50;
+        background: #f1f8f1;
+      }
+
+      &.pendiente {
+        border-left-color: #ff9800;
+        background: #fff8f1;
+      }
+
+      &.cancelada {
+        border-left-color: #f44336;
+        background: #fff1f1;
+        opacity: 0.8;
+      }
+
+      .evento-detalle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+
+        .evento-detalle-hora {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          ion-icon {
+            font-size: 18px;
+            color: #667eea;
+          }
+
+          span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+          }
+        }
+
+        ion-badge {
+          font-size: 11px;
+        }
+      }
+
+      .evento-detalle-body {
+        h4 {
+          font-size: 16px;
+          font-weight: 600;
+          margin: 0 0 6px;
+          color: #333;
+        }
+
+        .evento-detalle-subtitulo {
+          font-size: 13px;
+          color: #666;
+          margin: 0 0 12px;
+        }
+
+        .evento-detalle-info {
+          display: flex;
+          gap: 16px;
+
+          .info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            ion-icon {
+              font-size: 16px;
+              color: #667eea;
+            }
+
+            span {
+              font-size: 12px;
+              color: #666;
+            }
+          }
+        }
+      }
+
+      .evento-detalle-footer {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+
+        ion-button {
+          --color: #667eea;
+          font-size: 12px;
+          text-transform: none;
+        }
+      }
+    }
+
+    .empty-eventos-dia {
+      text-align: center;
+      padding: 40px 20px;
+
+      ion-icon {
+        font-size: 64px;
+        color: #ccc;
+        margin-bottom: 12px;
+      }
+
+      p {
+        font-size: 14px;
+        color: #999;
+        margin: 0;
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+// Leyenda
+.calendario-leyenda {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+
+  .leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .leyenda-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+
+      &.confirmada {
+        background: #4caf50;
+      }
+
+      &.pendiente {
+        background: #ff9800;
+      }
+
+      &.cancelada {
+        background: #f44336;
+      }
+    }
+
+    span {
+      font-size: 12px;
+      color: #666;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .dias-grid .dia-celda {
+    padding: 4px 2px;
+
+    .dia-numero {
+      font-size: 12px;
+    }
+
+    .eventos-indicadores .evento-dot {
+      width: 4px;
+      height: 4px;
+    }
+  }
+
+  .calendario-lista .eventos-agrupados .grupo-fecha .eventos-del-dia {
+    margin-left: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .calendario-header {
+    padding: 12px;
+
+    .mes-navegacion h2 {
+      font-size: 18px;
+    }
+
+    .acciones-header {
+      flex-direction: column;
+      gap: 4px;
+
+      ion-button {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .dias-semana .dia-header {
+    font-size: 10px;
+    padding: 8px 4px;
+  }
+
+  .calendario-lista .eventos-agrupados .grupo-fecha {
+    .grupo-header .fecha-badge {
+      width: 50px;
+      height: 50px;
+
+      .dia-numero {
+        font-size: 20px;
+      }
+    }
+
+    .eventos-del-dia .evento-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  .calendario-leyenda {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
