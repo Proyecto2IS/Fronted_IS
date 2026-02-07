@@ -4,9 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonLabel } from '@ionic/angular/standalone';
 import { TutoriasService } from '../../Services/tutoria.service';
 import { IonInput } from '@ionic/angular/standalone';
-
-
-
 import { Router } from '@angular/router';
 import {
   IonButtons,
@@ -63,7 +60,7 @@ interface Solicitud {
   templateUrl: './profesor-solicitudes.page.html',
   styleUrls: ['./profesor-solicitudes.page.scss'],
   standalone: true,
- imports: [IonLabel, 
+ imports: [IonLabel,
     CommonModule,
     FormsModule,
     IonHeader,
@@ -99,7 +96,7 @@ horaFin = '';
   solicitudesProcesadasFiltradas: Solicitud[] = [];
 
   constructor(private router: Router, private tutoriaService: TutoriasService) {
-    
+
     // Registrar los íconos
     addIcons({
       'refresh-outline': refreshOutline,
@@ -122,142 +119,13 @@ horaFin = '';
 
   ngOnInit() {
     console.log('Página de solicitudes inicializada');
-    this.cargarDatosEjemplo();
     this.aplicarFiltroProcesadas();
     this.cargarSolicitudes();
   }
 
-  cargarDatosEjemplo() {
-    // Solicitudes pendientes
-    this.solicitudesPendientes = [
-      {
-        id: 1,
-        estudiante: 'María González',
-        correo: 'maria.gonzalez@universidad.edu.ec',
-        materia: 'Cálculo Diferencial',
-        fecha: '2026-02-08',
-        hora: '10:00 AM - 11:00 AM',
-        motivo: 'Necesito ayuda para comprender el tema de límites y derivadas. Tengo examen la próxima semana.',
-        tiempoTranscurrido: '2 horas',
-        estado: 'Pendiente'
-      },
-      {
-        id: 2,
-        estudiante: 'Carlos Ramírez',
-        correo: 'carlos.ramirez@universidad.edu.ec',
-        materia: 'Álgebra Lineal',
-        fecha: '2026-02-09',
-        hora: '02:00 PM - 03:00 PM',
-        motivo: 'Tengo dudas sobre sistemas de ecuaciones lineales y matrices.',
-        tiempoTranscurrido: '5 horas',
-        estado: 'Pendiente'
-      },
-      {
-        id: 3,
-        estudiante: 'Ana Martínez',
-        correo: 'ana.martinez@universidad.edu.ec',
-        materia: 'Cálculo Integral',
-        fecha: '2026-02-10',
-        hora: '09:00 AM - 10:00 AM',
-        tiempoTranscurrido: '1 día',
-        estado: 'Pendiente'
-      },
-      {
-        id: 4,
-        estudiante: 'Pedro Sánchez',
-        correo: 'pedro.sanchez@universidad.edu.ec',
-        materia: 'Cálculo Diferencial',
-        fecha: '2026-02-11',
-        hora: '11:00 AM - 12:00 PM',
-        motivo: 'Necesito repasar los ejercicios del último capítulo antes del parcial.',
-        tiempoTranscurrido: '1 día',
-        estado: 'Pendiente'
-      },
-      {
-        id: 5,
-        estudiante: 'Laura Torres',
-        correo: 'laura.torres@universidad.edu.ec',
-        materia: 'Ecuaciones Diferenciales',
-        fecha: '2026-02-12',
-        hora: '03:00 PM - 04:00 PM',
-        motivo: 'Dificultades con ecuaciones de primer orden y variables separables.',
-        tiempoTranscurrido: '2 días',
-        estado: 'Pendiente'
-      }
-    ];
-
-    // Solicitudes procesadas
-    this.solicitudesProcesadas = [
-      {
-        id: 6,
-        estudiante: 'Diego Morales',
-        correo: 'diego.morales@universidad.edu.ec',
-        materia: 'Álgebra Lineal',
-        fecha: '2026-02-06',
-        hora: '10:00 AM - 11:30 AM',
-        tiempoTranscurrido: '1 día',
-        estado: 'Aceptada',
-        fechaProcesada: '2026-02-04'
-      },
-      {
-        id: 7,
-        estudiante: 'Sofía Vargas',
-        correo: 'sofia.vargas@universidad.edu.ec',
-        materia: 'Cálculo Diferencial',
-        fecha: '2026-02-07',
-        hora: '04:00 PM - 05:00 PM',
-        tiempoTranscurrido: '2 días',
-        estado: 'Rechazada',
-        fechaProcesada: '2026-02-03',
-        alternativasPropuestas: [
-          { fecha: '2026-02-08', hora: '10:00 AM - 11:00 AM' },
-          { fecha: '2026-02-09', hora: '02:00 PM - 03:00 PM' }
-        ]
-      },
-      {
-        id: 8,
-        estudiante: 'Roberto Díaz',
-        correo: 'roberto.diaz@universidad.edu.ec',
-        materia: 'Matemáticas Discretas',
-        fecha: '2026-02-05',
-        hora: '09:00 AM - 10:00 AM',
-        tiempoTranscurrido: '3 días',
-        estado: 'Aceptada',
-        fechaProcesada: '2026-02-02'
-      },
-      {
-        id: 9,
-        estudiante: 'Valentina Cruz',
-        correo: 'valentina.cruz@universidad.edu.ec',
-        materia: 'Cálculo Integral',
-        fecha: '2026-02-06',
-        hora: '02:00 PM - 03:00 PM',
-        tiempoTranscurrido: '2 días',
-        estado: 'Aceptada',
-        fechaProcesada: '2026-02-03'
-      },
-      {
-        id: 10,
-        estudiante: 'Andrés Ruiz',
-        correo: 'andres.ruiz@universidad.edu.ec',
-        materia: 'Álgebra Lineal',
-        fecha: '2026-02-08',
-        hora: '11:00 AM - 12:00 PM',
-        tiempoTranscurrido: '1 día',
-        estado: 'Rechazada',
-        fechaProcesada: '2026-02-04',
-        alternativasPropuestas: [
-          { fecha: '2026-02-10', hora: '09:00 AM - 10:00 AM' },
-          { fecha: '2026-02-11', hora: '03:00 PM - 04:00 PM' },
-          { fecha: '2026-02-12', hora: '10:00 AM - 11:00 AM' }
-        ]
-      }
-    ];
-  }
-
   cambiarTab(tab: string) {
     this.tabActivo = tab;
-  
+
   }
   cargarSolicitudes(){
 

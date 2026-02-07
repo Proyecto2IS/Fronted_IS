@@ -35,11 +35,14 @@ import {
   eyeOutline,
   folderOpenOutline
 } from 'ionicons/icons';
+import { TutoriasService } from '../../Services/tutoria.service';
 
 interface AlternativaPropuesta {
   fecha: string;
-  hora: string;
+  hora_inicio: string;
+  hora_fin: string;
 }
+
 
 interface Solicitud {
   id: number;
@@ -56,6 +59,7 @@ interface Solicitud {
   alternativaSeleccionada?: number | null;
   respondida?: boolean;
 }
+
 @Component({
   selector: 'app-estudiante-solicitudes',
   templateUrl: './estudiante-solicitudes.page.html',
@@ -91,7 +95,9 @@ export class EstudianteSolicitudesPage implements OnInit {
   solicitudesProcesadas: Solicitud[] = [];
   solicitudesProcesadasFiltradas: Solicitud[] = [];
 
-  constructor(private router: Router) {
+  constructor(private router: Router,
+    private tutoriaService: TutoriasService,
+  ) {
     // Registrar los íconos
     addIcons({
       'refresh-outline': refreshOutline,
@@ -114,118 +120,68 @@ export class EstudianteSolicitudesPage implements OnInit {
     });
   }
 
-  ngOnInit() {
-    console.log('Página de solicitudes del estudiante inicializada');
-    this.cargarDatosEjemplo();
-    this.aplicarFiltroProcesadas();
-  }
+ngOnInit() {
+  this.cargarSolicitudes();
+}
+cargarSolicitudes() {
 
-  cargarDatosEjemplo() {
-    // Solicitudes pendientes (esperando respuesta del docente)
-    this.solicitudesPendientes = [
-      {
-        id: 1,
-        materia: 'Cálculo Diferencial',
-        docente: 'Dr. Juan Pérez',
-        docenteEmail: 'juan.perez@universidad.edu.ec',
-        fecha: '2026-02-10',
-        hora: '10:00 AM - 11:00 AM',
-        tiempoTranscurrido: '2 horas',
-        estado: 'Pendiente'
-      },
-      {
-        id: 2,
-        materia: 'Programación I',
-        docente: 'Ing. María Rodríguez',
-        docenteEmail: 'maria.rodriguez@universidad.edu.ec',
-        fecha: '2026-02-11',
-        hora: '02:00 PM - 03:00 PM',
-        tiempoTranscurrido: '5 horas',
-        estado: 'Pendiente'
-      }
-    ];
+  this.tutoriaService.obtenerTutoriasEstudiante()
+    .subscribe((resp: any[]) => {
 
-    // Solicitudes confirmadas (aceptadas por el docente)
-    this.solicitudesConfirmadas = [
-      {
-        id: 3,
-        materia: 'Física I',
-        docente: 'Dr. Carlos Mendoza',
-        docenteEmail: 'carlos.mendoza@universidad.edu.ec',
-        fecha: '2026-02-08',
-        hora: '09:00 AM - 10:00 AM',
-        fechaConfirmacion: '2026-02-05',
-        estado: 'Confirmada'
-      },
-      {
-        id: 4,
-        materia: 'Álgebra Lineal',
-        docente: 'Dra. Ana Torres',
-        docenteEmail: 'ana.torres@universidad.edu.ec',
-        fecha: '2026-02-09',
-        hora: '11:00 AM - 12:00 PM',
-        fechaConfirmacion: '2026-02-06',
-        estado: 'Confirmada'
-      },
-      {
-        id: 5,
-        materia: 'Cálculo Integral',
-        docente: 'Dr. Juan Pérez',
-        docenteEmail: 'juan.perez@universidad.edu.ec',
-        fecha: '2026-02-12',
-        hora: '03:00 PM - 04:00 PM',
-        fechaConfirmacion: '2026-02-06',
-        estado: 'Confirmada'
-      }
-    ];
+      const solicitudesMapeadas: Solicitud[] = resp.map((t: any) => ({
+        id: t.id,
+        materia: t.tema || 'Sin materia',
+        docente: 'Docente ' + t.docente_id,   // temporal (igual que profe)
+        docenteEmail: '',
+        fecha: t.fecha,
+        hora: t.hora_inicio + ' - ' + t.hora_fin,
+        estado: this.mapearEstado(t.estado),
+        alternativasPropuestas:
+  t.propuestas?.length
+    ? t.propuestas[0].alternativas.map((alt: any) => ({
+        fecha: alt.fecha,
+        hora_inicio: alt.hora_inicio,
+        hora_fin: alt.hora_fin
+      }))
+    : [],
 
-    // Solicitudes procesadas (rechazadas o canceladas)
-    this.solicitudesProcesadas = [
-      {
-        id: 6,
-        materia: 'Estadística',
-        docente: 'Lic. Roberto Vega',
-        docenteEmail: 'roberto.vega@universidad.edu.ec',
-        fecha: '2026-02-07',
-        hora: '04:00 PM - 05:00 PM',
-        fechaProcesada: 'Rechazada el 2026-02-04',
-        estado: 'Rechazada',
-        alternativasPropuestas: [
-          { fecha: '2026-02-08', hora: '10:00 AM - 11:00 AM' },
-          { fecha: '2026-02-09', hora: '02:00 PM - 03:00 PM' },
-          { fecha: '2026-02-10', hora: '09:00 AM - 10:00 AM' }
-        ],
         alternativaSeleccionada: null,
         respondida: false
-      },
-      {
-        id: 7,
-        materia: 'Matemáticas Discretas',
-        docente: 'Dr. Luis González',
-        docenteEmail: 'luis.gonzalez@universidad.edu.ec',
-        fecha: '2026-02-06',
-        hora: '11:00 AM - 12:00 PM',
-        fechaProcesada: 'Cancelada el 2026-02-03',
-        estado: 'Cancelada'
-      },
-      {
-        id: 8,
-        materia: 'Programación II',
-        docente: 'Ing. María Rodríguez',
-        docenteEmail: 'maria.rodriguez@universidad.edu.ec',
-        fecha: '2026-02-05',
-        hora: '03:00 PM - 04:00 PM',
-        fechaProcesada: 'Rechazada el 2026-02-02',
-        estado: 'Rechazada',
-        alternativasPropuestas: [
-          { fecha: '2026-02-07', hora: '02:00 PM - 03:00 PM' },
-          { fecha: '2026-02-08', hora: '04:00 PM - 05:00 PM' }
-        ],
-        alternativaSeleccionada: 0,
-        respondida: true
-      }
-    ];
+      }));
+console.log('🟢 RESPUESTA ESTUDIANTE:', resp);
+
+      // 🔹 pendientes
+      this.solicitudesPendientes =
+        solicitudesMapeadas.filter(s => s.estado === 'Pendiente');
+
+      // 🔹 confirmadas
+      this.solicitudesConfirmadas =
+        solicitudesMapeadas.filter(s => s.estado === 'Confirmada');
+
+      // 🔹 rechazadas / canceladas
+      this.solicitudesProcesadas =
+        solicitudesMapeadas.filter(
+          s => s.estado === 'Rechazada' || s.estado === 'Cancelada'
+        );
+
+      this.aplicarFiltroProcesadas();
+      resp.forEach(t => {
+  console.log('🟥 PROPUESTAS RAW:', t.propuestas);
+});
+
+    });
+
+}
+mapearEstado(estado: string): string {
+  switch (estado) {
+    case 'pendiente': return 'Pendiente';
+    case 'confirmada': return 'Confirmada';
+    case 'rechazada': return 'Rechazada';
+    case 'cancelada': return 'Cancelada';
+    default: return estado;
   }
+}
+
 
   cambiarTab(tab: string) {
     this.tabActivo = tab;
@@ -251,19 +207,6 @@ export class EstudianteSolicitudesPage implements OnInit {
     }
   }
 
-  cancelarSolicitud(solicitud: Solicitud) {
-    console.log('Cancelar solicitud:', solicitud);
-
-    // Aquí se mostraría un modal de confirmación
-    // y se enviaría la cancelación al servicio
-
-    // Ejemplo de lo que haría:
-    // this.solicitudService.cancelar(solicitud.id).subscribe(() => {
-    //   // Mover de pendientes a procesadas
-    //   // Actualizar estado
-    //   // Mostrar toast de confirmación
-    // });
-  }
 
   seleccionarAlternativa(solicitud: Solicitud, index: number) {
     if (solicitud.respondida) {
@@ -275,39 +218,41 @@ export class EstudianteSolicitudesPage implements OnInit {
   }
 
   aceptarAlternativa(solicitud: Solicitud) {
-    if (solicitud.alternativaSeleccionada === null || solicitud.alternativaSeleccionada === undefined) {
-      console.log('Debe seleccionar una alternativa');
-      return;
-    }
-
-    console.log('Aceptar alternativa:', solicitud.alternativaSeleccionada, 'de solicitud:', solicitud.id);
-
-    // Según los requisitos:
-    // "El sistema debe permitir al estudiante aceptar una única alternativa propuesta por el docente"
-    // "El sistema debe confirmar automáticamente la tutoría cuando ambas partes coincidan en el horario"
-
-    // Aquí se enviaría al servicio:
-    // this.solicitudService.aceptarAlternativa(solicitud.id, solicitud.alternativaSeleccionada).subscribe(() => {
-    //   solicitud.respondida = true;
-    //   // La tutoría se confirma automáticamente
-    //   // Se registra en los calendarios de ambos
-    //   // Se notifica al estudiante
-    //   // Mostrar toast de éxito
-    // });
-
-    // Para la demo:
-    solicitud.respondida = true;
-    console.log('Alternativa aceptada - Tutoría confirmada automáticamente');
+  if (solicitud.alternativaSeleccionada === null) {
+    console.log('Debe seleccionar una alternativa');
+    return;
   }
+
+  this.tutoriaService.aceptarPropuesta(solicitud.id).subscribe({
+    next: () => {
+      // 🔹 Actualizar frontend
+      solicitud.respondida = true;
+      solicitud.estado = 'Confirmada';
+
+      // 🔹 Mover entre listas
+      this.solicitudesPendientes =
+        this.solicitudesPendientes.filter(s => s.id !== solicitud.id);
+
+      this.solicitudesConfirmadas.push(solicitud);
+
+      this.solicitudesProcesadas.push(solicitud);
+      this.aplicarFiltroProcesadas();
+
+      console.log('✅ Propuesta aceptada y tutoría confirmada');
+    },
+    error: (err) => {
+      console.error('❌ Error al aceptar propuesta', err);
+    }
+  });
+}
+
 
   verDetalles(solicitud: Solicitud) {
     console.log('Ver detalles de solicitud:', solicitud);
     // Aquí se abriría un modal con todos los detalles
   }
 
-  onRefresh() {
-    console.log('Refrescando solicitudes...');
-    // Aquí se recargarían las solicitudes desde el servicio
-    // this.solicitudService.obtenerMisSolicitudes().subscribe(...)
-  }
+onRefresh() {
+  this.cargarSolicitudes();
+}
 }

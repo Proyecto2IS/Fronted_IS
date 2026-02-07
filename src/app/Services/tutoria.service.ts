@@ -80,7 +80,16 @@ cancelarTutoria(id:number, motivo:string, propuestas:any[]){
   }
 
   cambiarEstado(id: number, estado: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}/estado`, { estado });
+    const token = localStorage.getItem('token');
+    return this.http.put(
+      `${this.apiUrl}/${id}/estado`,
+      { estado },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
   }
 
   cancelarConPropuesta(id: number, data: any): Observable<any> {

@@ -100,18 +100,6 @@
                 <span>Enviada hace {{ solicitud.tiempoTranscurrido }}</span>
               </div>
             </div>
-
-            <div class="solicitud-footer">
-              <ion-button
-                expand="block"
-                fill="outline"
-                color="danger"
-                size="small"
-                (click)="cancelarSolicitud(solicitud)">
-                <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-                Cancelar solicitud
-              </ion-button>
-            </div>
           </ion-card-content>
         </ion-card>
       </div>
@@ -122,7 +110,7 @@
             <ion-icon name="checkmark-done-outline" class="empty-icon success"></ion-icon>
             <h3>Sin solicitudes pendientes</h3>
             <p>No tienes solicitudes esperando respuesta</p>
-            <ion-button fill="outline" routerLink="/estudiante/solicitar-tutoria">
+            <ion-button fill="outline" routerLink="/solicitar-tutoria">
               <ion-icon name="add-circle-outline" slot="start"></ion-icon>
               Solicitar tutoría
             </ion-button>
@@ -272,7 +260,8 @@
                       <ion-icon name="calendar-outline"></ion-icon>
                       <div class="alternativa-info">
                         <span class="alternativa-fecha">{{ alt.fecha }}</span>
-                        <span class="alternativa-hora">{{ alt.hora }}</span>
+                        <span class="alternativa-hora">{{ alt.hora_inicio }}</span>
+                          <span class="alternativa-hora">{{ alt.hora_fin }}</span>
                       </div>
                     </div>
                     <ion-icon

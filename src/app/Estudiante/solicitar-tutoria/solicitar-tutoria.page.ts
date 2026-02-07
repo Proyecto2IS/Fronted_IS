@@ -2,7 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
-
+import { PropuestaAlternativaInterface } from 'src/app/Interfaces/propuesta-alternativa.interface';
+import { DisponibilidadInterface } from 'src/app/Interfaces/disponibilidad.interface';
+import { Materia } from 'src/app/Interfaces/materia';
+import { Docente } from 'src/app/Interfaces/docente';
+import { Horario } from 'src/app/Interfaces/horario';
+import { Dia } from 'src/app/Interfaces/dia';
 import { Router } from '@angular/router';
 import {IonButtons,IonBackButton,IonButton,IonIcon,IonCard,IonCardContent,IonItem,IonTextarea} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -27,31 +32,6 @@ import {
   alertCircleOutline
 } from 'ionicons/icons';
 
-interface Materia {
-  id: number;
-  nombre: string;
-  codigo: string;
-}
-
-interface Docente {
-  id: number;
-  nombre: string;
-  email: string;
-  horariosDisponibles: number;
-}
-
-interface Horario {
-  id: string;
-  hora: string;
-  disponible: boolean;
-  conflicto?: boolean;
-}
-
-interface Dia {
-  nombre: string;
-  fecha: string;
-  horarios: Horario[];
-}
 @Component({
   selector: 'app-solicitar-tutoria',
   templateUrl: './solicitar-tutoria.page.html',
@@ -301,41 +281,33 @@ export class SolicitarTutoriaPage implements OnInit {
 
     return true;
   }
+private separarHoras(hora: string): { inicio: string; fin: string } {
+  const [inicio, fin] = hora.split(' - ');
+  return { inicio, fin };
+}
 
   enviarSolicitud() {
-    console.log('Enviando solicitud...');
+  if (!this.validarSolicitud()) return;
 
-    if (!this.validarSolicitud()) {
-      // Mostrar toast o alerta al usuario
-      return;
-    }
+  const { inicio, fin } = this.separarHoras(
+    this.horarioSeleccionado!.hora
+  );
 
-    const solicitud = {
-      materiaId: this.materiaSeleccionada!.id,
-      docenteId: this.docenteSeleccionado!.id,
-      horarioId: this.horarioSeleccionado!.id,
-      fecha: this.fechaSeleccionadaTexto,
-      hora: this.horarioSeleccionado!.hora,
-      motivo: this.motivoSolicitud
-    };
+  const solicitud = {
+    estudiante_id: 1, // luego lo sacas del token
+    docente_id: this.docenteSeleccionado!.id,
+    materia_id: this.materiaSeleccionada!.id,
+    fecha: '2026-02-07', // luego lo calculas bien
+    hora_inicio: inicio,
+    hora_fin: fin,
+    numero_estudiantes_solicitados: 1,
+    tema: this.motivoSolicitud,
+    estado: 'pendiente'
+  };
 
-    console.log('Solicitud a enviar:', solicitud);
+  console.log('Solicitud lista para backend:', solicitud);
 
-    // Según requisitos:
-    // - "El sistema debe notificar automáticamente al docente cuando reciba una nueva solicitud"
-    // - La solicitud queda en estado "Pendiente" hasta que el docente la procese
+  // this.tutoriasService.crearTutoria(solicitud).subscribe();
+}
 
-    // Aquí se enviaría al servicio:
-    // this.tutoriaService.enviarSolicitud(solicitud).subscribe(() => {
-    //   // Notificar al docente automáticamente
-    //   // Mostrar mensaje de éxito
-    //   // Navegar a mis solicitudes
-    //   this.router.navigate(['/estudiante/estudiante-solicitudes']);
-    // });
-
-    // Para la demo:
-    console.log('Solicitud enviada exitosamente');
-    console.log('Notificación enviada al docente');
-    // this.router.navigate(['/estudiante/estudiante-solicitudes']);
-  }
 }

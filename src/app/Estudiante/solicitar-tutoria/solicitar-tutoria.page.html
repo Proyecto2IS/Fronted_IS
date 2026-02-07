@@ -240,7 +240,7 @@
         </ion-button>
         <ion-button
           expand="block"
-          [disabled]="!horarioSeleccionado || horarioSeleccionado?.conflicto"
+          [disabled]="!horarioSeleccionado || horarioSeleccionado.conflicto"
           (click)="siguientePaso()">
           Siguiente
           <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>

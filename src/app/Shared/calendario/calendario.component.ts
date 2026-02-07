@@ -17,6 +17,8 @@ import {
   calendarClearOutline,
   closeOutline
 } from 'ionicons/icons';
+import { TutoriasService } from 'src/app/Services/tutoria.service';
+import { TutoriaInterface } from 'src/app/Interfaces/tutoria.interface';
 
 export interface EventoCalendario {
   id: number;
@@ -73,7 +75,9 @@ export class CalendarioComponent  implements OnInit {
   diaSeleccionado: DiaCalendario | null = null;
   eventosAgrupados: EventoAgrupado[] = [];
 
-  constructor() {
+  constructor(
+    private tutoriasService: TutoriasService,
+  ) {
     // Registrar íconos
     addIcons({
       'chevron-back-outline': chevronBackOutline,
@@ -91,8 +95,7 @@ export class CalendarioComponent  implements OnInit {
   }
 
   ngOnInit() {
-    this.generarCalendario();
-    this.cargarDatosEjemplo();
+     this.cargarTutorias();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -102,77 +105,54 @@ export class CalendarioComponent  implements OnInit {
     }
   }
 
-  cargarDatosEjemplo() {
-    // Datos de ejemplo para visualización
-    const hoy = new Date();
+cargarTutorias() {
+  this.tutoriasService.obtenerTutoriasEstudiante().subscribe({
+    next: (tutorias: TutoriaInterface[]) => {
 
-    this.eventos = [
-      {
-        id: 1,
-        titulo: 'Tutoría de Cálculo',
-        subtitulo: 'Dr. Juan Pérez',
-        materia: 'Cálculo Diferencial',
-        fecha: new Date(2026, 1, 10, 10, 0), // 10 Feb 2026, 10:00
-        hora: '10:00 - 11:00',
-        duracion: 60,
-        estado: 'Confirmada'
-      },
-      {
-        id: 2,
-        titulo: 'Tutoría de Programación',
-        subtitulo: 'Ing. María Rodríguez',
-        materia: 'Programación I',
-        fecha: new Date(2026, 1, 10, 14, 0), // 10 Feb 2026, 14:00
-        hora: '14:00 - 15:00',
-        duracion: 60,
-        estado: 'Pendiente'
-      },
-      {
-        id: 3,
-        titulo: 'Tutoría de Física',
-        subtitulo: 'Dr. Carlos Mendoza',
-        materia: 'Física I',
-        fecha: new Date(2026, 1, 12, 9, 0), // 12 Feb 2026, 09:00
-        hora: '09:00 - 10:00',
-        duracion: 60,
-        estado: 'Confirmada'
-      },
-      {
-        id: 4,
-        titulo: 'Tutoría de Álgebra',
-        subtitulo: 'Dra. Ana Torres',
-        materia: 'Álgebra Lineal',
-        fecha: new Date(2026, 1, 13, 15, 0), // 13 Feb 2026, 15:00
-        hora: '15:00 - 16:00',
-        duracion: 60,
-        estado: 'Confirmada'
-      },
-      {
-        id: 5,
-        titulo: 'Tutoría de Estadística',
-        subtitulo: 'Lic. Roberto Vega',
-        materia: 'Estadística',
-        fecha: new Date(2026, 1, 15, 11, 0), // 15 Feb 2026, 11:00
-        hora: '11:00 - 12:00',
-        duracion: 60,
-        estado: 'Cancelada'
-      },
-      {
-        id: 6,
-        titulo: 'Tutoría de Cálculo',
-        subtitulo: 'Dr. Juan Pérez',
-        materia: 'Cálculo Integral',
-        fecha: new Date(2026, 1, 17, 10, 0), // 17 Feb 2026, 10:00
-        hora: '10:00 - 11:00',
-        duracion: 60,
-        estado: 'Confirmada'
-      }
-    ];
+      this.eventos = tutorias.map((t: TutoriaInterface) => this.mapearTutoriaAEvento(t));
 
-    this.generarCalendario();
-    this.agruparEventosPorFecha();
+      this.generarCalendario();
+      this.agruparEventosPorFecha();
+    },
+    error: (err: any) => {
+      console.error('Error al cargar tutorías', err);
+    }
+  });
+}
+mapearTutoriaAEvento(t: TutoriaInterface): EventoCalendario {
+
+  const fechaCompleta = new Date(`${t.fecha}T${t.hora_inicio}`);
+
+  return {
+    id: t.id!,
+    titulo: t.tema || 'Tutoría',
+    subtitulo: `Docente ID: ${t.docente_id}`,
+    materia: `Materia ID: ${t.materia_id}`,
+    fecha: fechaCompleta,
+    hora: `${t.hora_inicio} - ${t.hora_fin}`,
+    duracion: this.calcularDuracion(t.hora_inicio, t.hora_fin),
+    estado: this.mapearEstado(t.estado)
+  };
+}
+
+  mapearEstado(estado: string | undefined): 'Confirmada' | 'Pendiente' | 'Cancelada' {
+    if (!estado) return 'Pendiente';
+    const estadoMap: { [key: string]: 'Confirmada' | 'Pendiente' | 'Cancelada' } = {
+      'confirmada': 'Confirmada',
+      'pendiente': 'Pendiente',
+      'cancelada': 'Cancelada'
+    };
+    return estadoMap[estado.toLowerCase()] || 'Pendiente';
   }
+calcularDuracion(inicio: string, fin: string): number {
+  const [h1, m1] = inicio.split(':').map(Number);
+  const [h2, m2] = fin.split(':').map(Number);
 
+  const minutosInicio = h1 * 60 + m1;
+  const minutosFin = h2 * 60 + m2;
+
+  return minutosFin - minutosInicio;
+}
   generarCalendario() {
     const year = this.mesActual.getFullYear();
     const month = this.mesActual.getMonth();
