@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import { TutoriasService } from '../../Services/tutoria.service';
 
 import { Router } from '@angular/router';
 import {
@@ -91,7 +92,7 @@ export class ProfesorPage implements OnInit {
     }
   ];
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private tutoriaService: TutoriasService) {
     // Registrar los íconos
     addIcons({
       'person-circle-outline': personCircleOutline,
@@ -107,16 +108,17 @@ export class ProfesorPage implements OnInit {
   }
 
   ngOnInit() {
-    const usuarioStorage = localStorage.getItem('usuario');
+ 
+  }
+  ionViewWillEnter() {
+  const usuarioStorage = localStorage.getItem('usuario');
 
   if (usuarioStorage) {
     const usuario = JSON.parse(usuarioStorage);
-
-    // Ajusta según cómo venga tu backend
-    this.nombreProfesor = usuario.nombre; 
-    
+    this.nombreProfesor = usuario.nombre;
+    this.cargarTutorias();
   }
-  }
+}
 
   navigateToDisponibilidad() {
     // Lógica de navegación
@@ -138,6 +140,19 @@ export class ProfesorPage implements OnInit {
     console.log('Navegar a calendario');
     // this.router.navigate(['/profesor/calendario']);
   }
+  cargarTutorias(){
+
+   this.tutoriaService.getTutoriasDocente()
+  .subscribe((resp:any)=>{
+
+    this.proximasTutorias = resp;
+
+    this.solicitudesPendientes =
+      resp.filter((t:any)=> t.estado === 'pendiente').length;
+
+  });
+
+}
 
   getTutoriaColor(estado: string): string {
     const colores: { [key: string]: string } = {
@@ -151,7 +166,7 @@ export class ProfesorPage implements OnInit {
 
   onLogout() {
     console.log('Cerrar sesión');
-    // Aquí irá la lógica de cierre de sesión
-    // this.router.navigate(['/login']);
+    localStorage.clear();
+    this.router.navigate(['/login']);
   }
 }

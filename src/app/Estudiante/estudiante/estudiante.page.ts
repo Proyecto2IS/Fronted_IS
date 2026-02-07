@@ -164,6 +164,7 @@ export class EstudiantePage implements OnInit {
 
   onLogout() {
     console.log('Cerrar sesión');
+    this.router.navigate(['/login']);
     // Aquí irá la lógica de cierre de sesión
     // this.router.navigate(['/login']);
   }

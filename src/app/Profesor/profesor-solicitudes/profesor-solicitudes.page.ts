@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import { TutoriasService } from '../../Services/tutoria.service';
 
 
 import { Router } from '@angular/router';
@@ -84,12 +85,14 @@ export class ProfesorSolicitudesPage implements OnInit {
 
   tabActivo: string = 'pendientes';
   filtroProcesadas: string = 'todas';
+  solicitudes:any[] = [];
 
   solicitudesPendientes: Solicitud[] = [];
   solicitudesProcesadas: Solicitud[] = [];
   solicitudesProcesadasFiltradas: Solicitud[] = [];
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private tutoriaService: TutoriasService) {
+    
     // Registrar los íconos
     addIcons({
       'refresh-outline': refreshOutline,
@@ -114,6 +117,7 @@ export class ProfesorSolicitudesPage implements OnInit {
     console.log('Página de solicitudes inicializada');
     this.cargarDatosEjemplo();
     this.aplicarFiltroProcesadas();
+    this.cargarSolicitudes();
   }
 
   cargarDatosEjemplo() {
@@ -246,12 +250,41 @@ export class ProfesorSolicitudesPage implements OnInit {
 
   cambiarTab(tab: string) {
     this.tabActivo = tab;
-    console.log('Tab activo:', tab);
+  
   }
+  cargarSolicitudes(){
+
+  this.tutoriaService.getTutoriasDocente()
+  .subscribe((resp:any)=>{
+
+    this.solicitudesPendientes =
+      resp.filter((t:any)=> t.estado === 'pendiente');
+
+    this.solicitudesProcesadas =
+      resp.filter((t:any)=> t.estado !== 'pendiente');
+
+    this.solicitudesProcesadasFiltradas =
+      this.solicitudesProcesadas;
+
+  });
+
+}
 
   onFiltroProcesadasChange() {
-    console.log('Filtro de procesadas:', this.filtroProcesadas);
-    this.aplicarFiltroProcesadas();
+     if(this.filtroProcesadas === 'todas'){
+    this.solicitudesProcesadasFiltradas =
+      this.solicitudesProcesadas;
+  }
+
+  if(this.filtroProcesadas === 'aceptadas'){
+    this.solicitudesProcesadasFiltradas =
+      this.solicitudesProcesadas.filter((s:any)=> s.estado === 'aceptada');
+  }
+
+  if(this.filtroProcesadas === 'rechazadas'){
+    this.solicitudesProcesadasFiltradas =
+      this.solicitudesProcesadas.filter((s:any)=> s.estado === 'rechazada');
+  }
   }
 
   aplicarFiltroProcesadas() {
@@ -306,7 +339,7 @@ export class ProfesorSolicitudesPage implements OnInit {
   }
 
   onRefresh() {
-    console.log('Refrescando solicitudes...');
+    this.cargarSolicitudes();
     // Aquí se recargarían las solicitudes desde el servicio
     // this.solicitudService.obtenerSolicitudes().subscribe(...)
   }
