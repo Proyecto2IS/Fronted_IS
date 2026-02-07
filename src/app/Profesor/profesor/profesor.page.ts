@@ -132,8 +132,7 @@ navigateToSolicitudes() {
 
 
   navigateToHistorial() {
-    console.log('Navegar a historial');
-    // this.router.navigate(['/profesor/historial']);
+   this.router.navigate(['/profesor-historial']);
   }
 
   navigateToCalendario() {

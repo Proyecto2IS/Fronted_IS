@@ -23,7 +23,7 @@
             <div class="stat-item">
               <ion-icon name="checkmark-done-outline" class="stat-icon completadas"></ion-icon>
               <div class="stat-info">
-                <h3>{{ totalCompletadas }}</h3>
+                <h3>{{ totalConfirmadas }}</h3>
                 <p>Completadas</p>
               </div>
             </div>
@@ -35,12 +35,12 @@
               </div>
             </div>
             <div class="stat-item">
-              <ion-icon name="time-outline" class="stat-icon horas"></ion-icon>
-              <div class="stat-info">
-                <h3>{{ totalHoras }}</h3>
-                <p>Horas totales</p>
-              </div>
-            </div>
+  <ion-icon name="hourglass-outline" class="stat-icon pendientes"></ion-icon>
+  <div class="stat-info">
+    <h3>{{ totalPendientes }}</h3>
+    <p>Pendientes</p>
+  </div>
+</div>
           </div>
         </ion-card-content>
       </ion-card>
@@ -77,8 +77,9 @@
                 [(ngModel)]="filtroEstado"
                 (ionChange)="onFiltroChange()">
                 <ion-select-option value="todos">Todos</ion-select-option>
-                <ion-select-option value="completada">Completadas</ion-select-option>
                 <ion-select-option value="cancelada">Canceladas</ion-select-option>
+                <ion-select-option value="confirmada">Confirmadas</ion-select-option>
+                <ion-select-option value="pendiente">Pendientes</ion-select-option>
               </ion-select>
             </ion-item>
           </div>
@@ -90,7 +91,8 @@
                 [(ngModel)]="filtroMateria"
                 (ionChange)="onFiltroChange()">
                 <ion-select-option value="todas">Todas las materias</ion-select-option>
-                <ion-select-option *ngFor="let materia of materias" [value]="materia.id">
+                <ion-select-option *ngFor="let materia of materias" [value]="materia.nombre">
+
                   {{ materia.nombre }}
                 </ion-select-option>
               </ion-select>

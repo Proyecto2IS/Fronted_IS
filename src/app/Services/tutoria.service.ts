@@ -100,5 +100,21 @@ cancelarTutoria(id:number, motivo:string, propuestas:any[]){
   obtenerHistorial(): Observable<TutoriaInterface[]> {
     return this.http.get<TutoriaInterface[]>(`${this.apiUrl}/historial/finalizadas`);
   }
+
+  obtenerTutoriasDocente(){
+
+  const token = localStorage.getItem('token');
+
+  return this.http.get(
+    'http://localhost:3000/tutorias/docente',
+    {
+      headers:{
+        Authorization:`Bearer ${token}`
+      }
+    }
+  );
+}
+
+
 }
 
