@@ -22,6 +22,38 @@ export class TutoriasService {
 
     return this.http.get<TutoriaInterface[]>(`${this.apiUrl}/docente`, { headers });
   }
+ actualizarEstadoTutoria(id: number, estado: string) {
+  const token = localStorage.getItem('token');
+
+  return this.http.put(
+    `http://localhost:3000/tutorias/${id}/estado`,
+    {
+      estado: estado   // 👈 AQUÍ está la clave
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+}
+cancelarTutoria(id:number, motivo:string, propuestas:any[]){
+
+  const token = localStorage.getItem('token');
+
+  return this.http.put(
+    `http://localhost:3000/tutorias/${id}/cancelar`,
+    {
+      motivo: motivo,
+      propuestas: propuestas
+    },
+    {
+      headers:{
+        Authorization:`Bearer ${token}`
+      }
+    }
+  );
+}
 
 
 // 🔹 ESTUDIANTE

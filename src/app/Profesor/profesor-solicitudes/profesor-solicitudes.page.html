@@ -103,13 +103,16 @@
             </div>
 
             <div class="solicitud-footer">
-              <ion-button
-                expand="block"
-                color="success"
-                (click)="aceptarSolicitud(solicitud)">
-                <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
-                Aceptar
-              </ion-button>
+             <ion-button 
+  expand="block"
+  color="success"
+  (click)="aceptarSolicitud(solicitud)">
+  
+  <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+  Aceptar
+</ion-button>
+
+
 
               <ion-button
                 expand="block"
@@ -119,6 +122,59 @@
                 <ion-icon name="close-circle-outline" slot="start"></ion-icon>
                 Rechazar y proponer alternativas
               </ion-button>
+              <!-- FORMULARIO DE CANCELACIÓN / PROPUESTA -->
+<div *ngIf="solicitudCancelando?.id === solicitud.id" class="cancelar-form">
+
+  <ion-item>
+    <ion-label position="stacked">Motivo</ion-label>
+    <ion-input
+      [(ngModel)]="motivo"
+      name="motivo"
+      [ngModelOptions]="{ standalone: true }">
+    </ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Fecha alternativa</ion-label>
+    <ion-input
+      type="date"
+      [(ngModel)]="fecha"
+      name="fecha"
+      [ngModelOptions]="{ standalone: true }">
+    </ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Hora inicio</ion-label>
+    <ion-input
+      type="time"
+      [(ngModel)]="horaInicio"
+      name="horaInicio"
+      [ngModelOptions]="{ standalone: true }">
+    </ion-input>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="stacked">Hora fin</ion-label>
+    <ion-input
+      type="time"
+      [(ngModel)]="horaFin"
+      name="horaFin"
+      [ngModelOptions]="{ standalone: true }">
+    </ion-input>
+  </ion-item>
+
+  <ion-button
+    expand="block"
+    color="danger"
+    type="button"
+    (click)="confirmarCancelacion()">
+    Confirmar cancelación
+  </ion-button>
+
+  </div>
+
+
             </div>
           </ion-card-content>
         </ion-card>

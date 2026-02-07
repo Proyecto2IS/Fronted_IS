@@ -1,9 +1,10 @@
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonTitle, IonToolbar, IonLabel } from '@ionic/angular/standalone';
 import { TutoriasService } from '../../Services/tutoria.service';
+import { IonInput } from '@ionic/angular/standalone';
+
 
 
 import { Router } from '@angular/router';
@@ -62,7 +63,7 @@ interface Solicitud {
   templateUrl: './profesor-solicitudes.page.html',
   styleUrls: ['./profesor-solicitudes.page.scss'],
   standalone: true,
- imports: [
+ imports: [IonLabel, 
     CommonModule,
     FormsModule,
     IonHeader,
@@ -78,7 +79,8 @@ interface Solicitud {
     IonBadge,
     IonItem,
     IonSelect,
-    IonSelectOption
+    IonSelectOption,
+    IonInput
   ]
 })
 export class ProfesorSolicitudesPage implements OnInit {
@@ -86,7 +88,12 @@ export class ProfesorSolicitudesPage implements OnInit {
   tabActivo: string = 'pendientes';
   filtroProcesadas: string = 'todas';
   solicitudes:any[] = [];
+   solicitudCancelando:any = null;
 
+motivo = '';
+fecha = '';
+horaInicio = '';
+horaFin = '';
   solicitudesPendientes: Solicitud[] = [];
   solicitudesProcesadas: Solicitud[] = [];
   solicitudesProcesadasFiltradas: Solicitud[] = [];
@@ -255,13 +262,25 @@ export class ProfesorSolicitudesPage implements OnInit {
   cargarSolicitudes(){
 
   this.tutoriaService.getTutoriasDocente()
-  .subscribe((resp:any)=>{
+  .subscribe((resp: any) => {
+
+    const solicitudesMapeadas = resp.map((t:any)=>({
+      id: t.id,
+      estudiante: 'Estudiante ' + t.estudiante_id,   // temporal
+      correo: '',
+      materia: t.tema,
+      fecha: t.fecha,
+      hora: t.hora_inicio + ' - ' + t.hora_fin,
+      motivo: '',
+      tiempoTranscurrido: '',
+      estado: t.estado
+    }));
 
     this.solicitudesPendientes =
-      resp.filter((t:any)=> t.estado === 'pendiente');
+      solicitudesMapeadas.filter((t:any)=> t.estado === 'pendiente');
 
     this.solicitudesProcesadas =
-      resp.filter((t:any)=> t.estado !== 'pendiente');
+      solicitudesMapeadas.filter((t:any)=> t.estado !== 'pendiente');
 
     this.solicitudesProcesadasFiltradas =
       this.solicitudesProcesadas;
@@ -269,6 +288,7 @@ export class ProfesorSolicitudesPage implements OnInit {
   });
 
 }
+
 
   onFiltroProcesadasChange() {
      if(this.filtroProcesadas === 'todas'){
@@ -301,37 +321,66 @@ export class ProfesorSolicitudesPage implements OnInit {
     }
   }
 
-  aceptarSolicitud(solicitud: Solicitud) {
-    console.log('Aceptar solicitud:', solicitud);
+ aceptarSolicitud(solicitud: any) {
+  this.tutoriaService
+    .actualizarEstadoTutoria(solicitud.id, 'confirmada') // 👈 CLAVE
+    .subscribe({
+      next: () => {
+        this.cargarSolicitudes();
+      },
+      error: (err) => {
+        console.error(err);
+        alert(err.error?.error || 'No se pudo confirmar la tutoría');
+      }
+    });
+}
 
-    // Aquí se mostraría un modal de confirmación
-    // y se enviaría la aceptación al servicio
 
-    // Ejemplo de lo que haría:
-    // this.solicitudService.aceptar(solicitud.id).subscribe(() => {
-    //   // Mover de pendientes a procesadas
-    //   // Actualizar estado
-    //   // Mostrar toast de éxito
-    //   // Enviar notificación al estudiante
-    // });
+
+rechazarSolicitud(solicitud:any){
+  this.solicitudCancelando = solicitud;
+}
+
+confirmarCancelacion() {
+
+  if (!this.motivo || this.motivo.trim() === '') {
+    alert('Debe ingresar el motivo');
+    return;
   }
 
-  rechazarSolicitud(solicitud: Solicitud) {
-    console.log('Rechazar solicitud:', solicitud);
-
-    // Aquí se abriría un modal para que el profesor
-    // ingrese las alternativas de fecha/hora
-
-    // Según los requisitos, debe proponer al menos una alternativa
-    // y el sistema debe validar que estén disponibles
-
-    // Ejemplo:
-    // const modal = await this.modalController.create({
-    //   component: ModalAlternativasComponent,
-    //   componentProps: { solicitud }
-    // });
-    // await modal.present();
+  if (!this.fecha || !this.horaInicio || !this.horaFin) {
+    alert('Debe ingresar una propuesta de fecha y horario');
+    return;
   }
+
+  const propuestas = [
+    {
+      fecha: this.fecha,
+      hora_inicio: this.horaInicio + ':00',
+      hora_fin: this.horaFin + ':00'
+    }
+  ];
+
+  this.tutoriaService.cancelarTutoria(
+    this.solicitudCancelando.id,
+    this.motivo,
+    propuestas
+  ).subscribe({
+    next: () => {
+      this.solicitudCancelando = null;
+      this.motivo = '';
+      this.fecha = '';
+      this.horaInicio = '';
+      this.horaFin = '';
+      this.cargarSolicitudes();
+    },
+    error: (err) => {
+      console.error(err);
+      alert(err.error?.error || 'Error al cancelar la tutoría');
+    }
+  });
+}
+
 
   verDetallesSolicitud(solicitud: Solicitud) {
     console.log('Ver detalles de solicitud:', solicitud);

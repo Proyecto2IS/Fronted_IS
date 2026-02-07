@@ -126,10 +126,10 @@ export class ProfesorPage implements OnInit {
     // this.router.navigate(['/profesor/disponibilidad']);
   }
 
-  navigateToSolicitudes() {
-    console.log('Navegar a solicitudes');
-    // this.router.navigate(['/profesor-solicitudes']);
-  }
+navigateToSolicitudes() {
+  this.router.navigate(['/profesor-solicitudes']);
+}
+
 
   navigateToHistorial() {
     console.log('Navegar a historial');
