@@ -1,14 +1,11 @@
 ion-toolbar {
   --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
-
 .profesor-container {
   padding: 16px;
   background-color: #f5f5f5;
   min-height: 100%;
 }
-
-// Sección de bienvenida
 .welcome-section {
   text-align: center;
   padding: 20px 0;
@@ -43,8 +40,6 @@ ion-toolbar {
     margin-top: 4px;
   }
 }
-
-// Grid de estadísticas
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -128,10 +123,6 @@ ion-toolbar {
         ion-icon {
           font-size: 32px;
           color: white;
-        }
-
-        &.disponibilidad {
-          background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
         }
 
         &.solicitudes {

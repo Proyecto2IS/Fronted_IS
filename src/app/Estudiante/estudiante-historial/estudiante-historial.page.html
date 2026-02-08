@@ -197,9 +197,9 @@
 
             <!-- Información de asistencia -->
             <div class="asistencia-info" *ngIf="tutoria.estado === 'Completada'">
-              <div class="asistencia-badge" [class.asistio]="tutoria.asistio" [class.no-asistio]="!tutoria.asistio">
-                <ion-icon [name]="tutoria.asistio ? 'checkmark-circle' : 'close-circle'"></ion-icon>
-                <span>{{ tutoria.asistio ? 'Asistió' : 'No asistió' }}</span>
+              <div class="asistencia-badge" [class.asistio]="tutoria.asistio > 0" [class.no-asistio]="tutoria.asistio === 0">
+                <ion-icon [name]="tutoria.asistio > 0 ? 'checkmark-circle' : 'close-circle'"></ion-icon>
+                <span> {{ tutoria.numeroAsistieron }} estudiantes asistieron</span>
               </div>
             </div>
 

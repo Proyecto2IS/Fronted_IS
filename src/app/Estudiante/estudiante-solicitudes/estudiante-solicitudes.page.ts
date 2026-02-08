@@ -38,11 +38,11 @@ import {
 import { TutoriasService } from '../../Services/tutoria.service';
 
 interface AlternativaPropuesta {
+  id: number;
   fecha: string;
   hora_inicio: string;
   hora_fin: string;
 }
-
 
 interface Solicitud {
   id: number;
@@ -51,13 +51,18 @@ interface Solicitud {
   docenteEmail: string;
   fecha: string;
   hora: string;
-  tiempoTranscurrido?: string;
-  fechaConfirmacion?: string;
-  fechaProcesada?: string;
   estado: string;
+
+  numeroEstudiantesSolicitados?: number;
+  numeroEstudiantesAsistieron?: number;
+
   alternativasPropuestas?: AlternativaPropuesta[];
   alternativaSeleccionada?: number | null;
   respondida?: boolean;
+
+  tiempoTranscurrido?: string;
+  fechaConfirmacion?: string;
+  fechaProcesada?: string;
 }
 
 @Component({
@@ -65,7 +70,7 @@ interface Solicitud {
   templateUrl: './estudiante-solicitudes.page.html',
   styleUrls: ['./estudiante-solicitudes.page.scss'],
   standalone: true,
- imports: [
+  imports: [
     CommonModule,
     FormsModule,
     RouterModule,
@@ -87,7 +92,7 @@ interface Solicitud {
 })
 export class EstudianteSolicitudesPage implements OnInit {
 
- tabActivo: string = 'pendientes';
+  tabActivo: string = 'pendientes';
   filtroProcesadas: string = 'todas';
 
   solicitudesPendientes: Solicitud[] = [];
@@ -95,7 +100,8 @@ export class EstudianteSolicitudesPage implements OnInit {
   solicitudesProcesadas: Solicitud[] = [];
   solicitudesProcesadasFiltradas: Solicitud[] = [];
 
-  constructor(private router: Router,
+  constructor(
+    private router: Router,
     private tutoriaService: TutoriasService,
   ) {
     // Registrar los íconos
@@ -120,68 +126,97 @@ export class EstudianteSolicitudesPage implements OnInit {
     });
   }
 
-ngOnInit() {
-  this.cargarSolicitudes();
-}
-cargarSolicitudes() {
-
-  this.tutoriaService.obtenerTutoriasEstudiante()
-    .subscribe((resp: any[]) => {
-
-      const solicitudesMapeadas: Solicitud[] = resp.map((t: any) => ({
-        id: t.id,
-        materia: t.tema || 'Sin materia',
-        docente: 'Docente ' + t.docente_id,   // temporal (igual que profe)
-        docenteEmail: '',
-        fecha: t.fecha,
-        hora: t.hora_inicio + ' - ' + t.hora_fin,
-        estado: this.mapearEstado(t.estado),
-        alternativasPropuestas:
-  t.propuestas?.length
-    ? t.propuestas[0].alternativas.map((alt: any) => ({
-        fecha: alt.fecha,
-        hora_inicio: alt.hora_inicio,
-        hora_fin: alt.hora_fin
-      }))
-    : [],
-
-        alternativaSeleccionada: null,
-        respondida: false
-      }));
-console.log('🟢 RESPUESTA ESTUDIANTE:', resp);
-
-      // 🔹 pendientes
-      this.solicitudesPendientes =
-        solicitudesMapeadas.filter(s => s.estado === 'Pendiente');
-
-      // 🔹 confirmadas
-      this.solicitudesConfirmadas =
-        solicitudesMapeadas.filter(s => s.estado === 'Confirmada');
-
-      // 🔹 rechazadas / canceladas
-      this.solicitudesProcesadas =
-        solicitudesMapeadas.filter(
-          s => s.estado === 'Rechazada' || s.estado === 'Cancelada'
-        );
-
-      this.aplicarFiltroProcesadas();
-      resp.forEach(t => {
-  console.log('🟥 PROPUESTAS RAW:', t.propuestas);
-});
-
-    });
-
-}
-mapearEstado(estado: string): string {
-  switch (estado) {
-    case 'pendiente': return 'Pendiente';
-    case 'confirmada': return 'Confirmada';
-    case 'rechazada': return 'Rechazada';
-    case 'cancelada': return 'Cancelada';
-    default: return estado;
+  ngOnInit() {
+    this.cargarSolicitudes();
   }
-}
 
+  cargarSolicitudes() {
+    this.tutoriaService.obtenerTutoriasEstudiante()
+      .subscribe({
+        next: (resp: any[]) => {
+          console.log('🟢 RESPUESTA COMPLETA DEL BACKEND:', resp);
+
+          const solicitudesMapeadas: Solicitud[] = resp.map((t: any) => {
+
+            // 🔹 Extraer alternativas propuestas
+            let alternativas: AlternativaPropuesta[] = [];
+
+            if (t.propuestas && Array.isArray(t.propuestas) && t.propuestas.length > 0) {
+              console.log('🟡 Propuestas encontradas para tutoría', t.id, ':', t.propuestas);
+
+              // Iterar sobre todas las propuestas (aunque normalmente debería haber solo una)
+              t.propuestas.forEach((propuesta: any) => {
+                if (propuesta.alternativas && Array.isArray(propuesta.alternativas)) {
+                  const altsTemp = propuesta.alternativas.map((alt: any) => ({
+                    id: alt.id,
+                    fecha: alt.fecha,
+                    hora_inicio: alt.hora_inicio,
+                    hora_fin: alt.hora_fin
+                  }));
+                  alternativas.push(...altsTemp);
+                }
+              });
+            }
+
+            console.log('🔵 Alternativas mapeadas para tutoría', t.id, ':', alternativas);
+
+            return {
+              id: t.id,
+              materia: t.tema || 'Sin materia',
+              docente: 'Docente ' + t.docente_id,
+              docenteEmail: '',
+              fecha: t.fecha,
+              hora: t.hora_inicio + ' - ' + t.hora_fin,
+              estado: this.mapearEstado(t.estado),
+
+              numeroEstudiantesSolicitados: t.numero_estudiantes_solicitados,
+              numeroEstudiantesAsistieron: t.numero_estudiantes_asistieron,
+
+              tiempoTranscurrido: t.tiempo_transcurrido || 'hace un momento',
+              fechaConfirmacion: t.fecha_confirmacion,
+              fechaProcesada: t.updatedAt,
+
+              alternativasPropuestas: alternativas,
+              alternativaSeleccionada: null,
+              respondida: false
+            };
+          });
+
+          console.log('🟢 SOLICITUDES MAPEADAS:', solicitudesMapeadas);
+
+          // 🔹 Filtrar por estado
+          this.solicitudesPendientes =
+            solicitudesMapeadas.filter(s => s.estado === 'Pendiente');
+
+          this.solicitudesConfirmadas =
+            solicitudesMapeadas.filter(s => s.estado === 'Confirmada');
+
+          this.solicitudesProcesadas =
+            solicitudesMapeadas.filter(
+              s => s.estado === 'Rechazada' || s.estado === 'Cancelada'
+            );
+
+          console.log('📋 Pendientes:', this.solicitudesPendientes);
+          console.log('✅ Confirmadas:', this.solicitudesConfirmadas);
+          console.log('🗂️ Procesadas:', this.solicitudesProcesadas);
+
+          this.aplicarFiltroProcesadas();
+        },
+        error: (err) => {
+          console.error('❌ Error al cargar solicitudes:', err);
+        }
+      });
+  }
+
+  mapearEstado(estado: string): string {
+    switch (estado) {
+      case 'pendiente': return 'Pendiente';
+      case 'confirmada': return 'Confirmada';
+      case 'rechazada': return 'Rechazada';
+      case 'cancelada': return 'Cancelada';
+      default: return estado;
+    }
+  }
 
   cambiarTab(tab: string) {
     this.tabActivo = tab;
@@ -207,52 +242,64 @@ mapearEstado(estado: string): string {
     }
   }
 
-
   seleccionarAlternativa(solicitud: Solicitud, index: number) {
     if (solicitud.respondida) {
       return; // No permitir cambiar si ya respondió
     }
 
-    console.log('Seleccionar alternativa:', index, 'para solicitud:', solicitud.id);
+    console.log('✅ Seleccionar alternativa:', index, 'para solicitud:', solicitud.id);
     solicitud.alternativaSeleccionada = index;
   }
 
   aceptarAlternativa(solicitud: Solicitud) {
-  if (solicitud.alternativaSeleccionada === null) {
-    console.log('Debe seleccionar una alternativa');
-    return;
+    if (solicitud.alternativaSeleccionada == null) {
+      console.warn('⚠️ No hay alternativa seleccionada');
+      return;
+    }
+
+    const idx = solicitud.alternativaSeleccionada as number;
+    const alternativa = solicitud.alternativasPropuestas && solicitud.alternativasPropuestas[idx];
+
+    if (!alternativa) {
+      console.error('❌ Alternativa no encontrada para la solicitud', solicitud.id);
+      return;
+    }
+
+    console.log('📤 Enviando aceptación de alternativa con ID:', alternativa.id);
+
+    this.tutoriaService.aceptarPropuesta(alternativa.id).subscribe({
+      next: (response) => {
+        console.log('✅ Alternativa aceptada con éxito:', response);
+
+        solicitud.respondida = true;
+        solicitud.estado = 'Confirmada';
+
+        // Remover de pendientes y procesadas
+        this.solicitudesPendientes =
+          this.solicitudesPendientes.filter(s => s.id !== solicitud.id);
+
+        this.solicitudesProcesadas =
+          this.solicitudesProcesadas.filter(s => s.id !== solicitud.id);
+
+        // Agregar a confirmadas
+        this.solicitudesConfirmadas.push(solicitud);
+
+        this.aplicarFiltroProcesadas();
+      },
+      error: (err) => {
+        console.error('❌ Error al aceptar alternativa:', err);
+        alert('Error al aceptar la alternativa. Por favor, intenta de nuevo.');
+      }
+    });
   }
 
-  this.tutoriaService.aceptarPropuesta(solicitud.id).subscribe({
-    next: () => {
-      // 🔹 Actualizar frontend
-      solicitud.respondida = true;
-      solicitud.estado = 'Confirmada';
-
-      // 🔹 Mover entre listas
-      this.solicitudesPendientes =
-        this.solicitudesPendientes.filter(s => s.id !== solicitud.id);
-
-      this.solicitudesConfirmadas.push(solicitud);
-
-      this.solicitudesProcesadas.push(solicitud);
-      this.aplicarFiltroProcesadas();
-
-      console.log('✅ Propuesta aceptada y tutoría confirmada');
-    },
-    error: (err) => {
-      console.error('❌ Error al aceptar propuesta', err);
-    }
-  });
-}
-
-
   verDetalles(solicitud: Solicitud) {
-    console.log('Ver detalles de solicitud:', solicitud);
+    console.log('👁️ Ver detalles de solicitud:', solicitud);
     // Aquí se abriría un modal con todos los detalles
   }
 
-onRefresh() {
-  this.cargarSolicitudes();
-}
+  onRefresh() {
+    console.log('🔄 Refrescando solicitudes...');
+    this.cargarSolicitudes();
+  }
 }

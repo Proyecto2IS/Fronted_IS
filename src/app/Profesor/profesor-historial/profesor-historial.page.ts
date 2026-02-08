@@ -94,7 +94,7 @@ export class ProfesorHistorialPage implements OnInit {
   filtroEstado: string = 'todos';
   filtroMateria: string = 'todas';
 
-  
+
  // Datos
   materias: Materia[] = [
   { id: 1, nombre: 'Cálculo Diferencial' },

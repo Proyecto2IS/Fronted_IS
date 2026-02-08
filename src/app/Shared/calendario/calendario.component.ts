@@ -65,6 +65,8 @@ export class CalendarioComponent  implements OnInit {
   @Input() eventos: EventoCalendario[] = [];
   @Output() eventoSeleccionado = new EventEmitter<EventoCalendario>();
 
+  @Input() rol: 'docente' | 'estudiante' = 'estudiante';
+
   vistaActual: 'mes' | 'lista' = 'mes';
   mesActual: Date = new Date();
   mesActualTexto: string = '';
@@ -95,10 +97,26 @@ export class CalendarioComponent  implements OnInit {
   }
 
   ngOnInit() {
-     this.cargarTutorias();
+    // Detectar rol: primero desde localStorage, luego usar el @Input
+    const usuarioStorage = localStorage.getItem('usuario');
+    if (usuarioStorage) {
+      try {
+        const usuario = JSON.parse(usuarioStorage);
+        if (usuario.rol) {
+          this.rol = usuario.rol;
+        }
+      } catch (e) {
+        console.error('Error al parsear usuario de localStorage', e);
+      }
+    }
+
+    this.cargarTutorias();
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes['rol'] && !changes['rol'].firstChange) {
+      this.cargarTutorias();
+    }
     if (changes['eventos'] && !changes['eventos'].firstChange) {
       this.generarCalendario();
       this.agruparEventosPorFecha();
@@ -106,10 +124,18 @@ export class CalendarioComponent  implements OnInit {
   }
 
 cargarTutorias() {
-  this.tutoriasService.obtenerTutoriasEstudiante().subscribe({
+
+  const request =
+    this.rol === 'docente'
+      ? this.tutoriasService.getTutoriasDocente()
+      : this.tutoriasService.obtenerTutoriasEstudiante();
+
+  request.subscribe({
     next: (tutorias: TutoriaInterface[]) => {
 
-      this.eventos = tutorias.map((t: TutoriaInterface) => this.mapearTutoriaAEvento(t));
+      this.eventos = tutorias.map(t =>
+        this.mapearTutoriaAEvento(t)
+      );
 
       this.generarCalendario();
       this.agruparEventosPorFecha();

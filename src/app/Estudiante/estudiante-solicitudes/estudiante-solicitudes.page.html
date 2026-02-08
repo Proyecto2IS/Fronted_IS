@@ -245,7 +245,8 @@
               </div>
 
               <!-- Alternativas propuestas por el docente -->
-              <div class="alternativas-section" *ngIf="solicitud.estado === 'Rechazada' && solicitud.alternativasPropuestas">
+              <div class="alternativas-section"
+     *ngIf="solicitud.estado === 'Cancelada' && solicitud.alternativasPropuestas?.length">
                 <div class="alternativas-header">
                   <ion-icon name="swap-horizontal-outline"></ion-icon>
                   <strong>El docente propuso alternativas:</strong>
@@ -261,7 +262,7 @@
                       <div class="alternativa-info">
                         <span class="alternativa-fecha">{{ alt.fecha }}</span>
                         <span class="alternativa-hora">{{ alt.hora_inicio }}</span>
-                          <span class="alternativa-hora">{{ alt.hora_fin }}</span>
+
                       </div>
                     </div>
                     <ion-icon

@@ -14,11 +14,6 @@ export const routes: Routes = [
   },
 
   {
-    path: 'home',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
-  },
-
-  {
     path: 'estudiante',
     loadComponent: () => import('./Estudiante/estudiante/estudiante.page').then( m => m.EstudiantePage)
   },
@@ -42,12 +37,7 @@ export const routes: Routes = [
     path: 'estudiante-historial',
     loadComponent: () => import('./Estudiante/estudiante-historial/estudiante-historial.page').then( m => m.EstudianteHistorialPage)
   },
-
-  {
-    path: 'profesor-disponibilidad',
-    loadComponent: () => import('./Profesor/profesor-disponibilidad/profesor-disponibilidad.page').then( m => m.ProfesorDisponibilidadPage)
-  },
-
+  
   {
     path: 'profesor-solicitudes',
     loadComponent: () => import('./Profesor/profesor-solicitudes/profesor-solicitudes.page').then( m => m.ProfesorSolicitudesPage)

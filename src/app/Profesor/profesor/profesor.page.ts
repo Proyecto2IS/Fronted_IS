@@ -61,36 +61,11 @@ interface Tutoria {
 export class ProfesorPage implements OnInit {
 
   nombreProfesor: string = '';
-  solicitudesPendientes: number = 5;
-  tutoriasHoy: number = 3;
-  tutoriasSemanales: number = 12;
+  solicitudesPendientes: number = 0;
+  tutoriasHoy: number = 0;
+  tutoriasSemanales: number = 0;
 
-  proximasTutorias: Tutoria[] = [
-    {
-      id: 1,
-      materia: 'Cálculo Diferencial',
-      estudiante: 'María González',
-      fecha: '2026-02-06',
-      hora: '10:00 AM - 11:00 AM',
-      estado: 'Confirmada'
-    },
-    {
-      id: 2,
-      materia: 'Álgebra Lineal',
-      estudiante: 'Carlos Ramírez',
-      fecha: '2026-02-06',
-      hora: '02:00 PM - 03:00 PM',
-      estado: 'Confirmada'
-    },
-    {
-      id: 3,
-      materia: 'Cálculo Integral',
-      estudiante: 'Ana Martínez',
-      fecha: '2026-02-07',
-      hora: '09:00 AM - 10:00 AM',
-      estado: 'Pendiente'
-    }
-  ];
+  proximasTutorias: Tutoria[] = [];
 
   constructor(private router: Router, private tutoriaService: TutoriasService) {
     // Registrar los íconos
@@ -137,20 +112,77 @@ navigateToSolicitudes() {
 
   navigateToCalendario() {
     console.log('Navegar a calendario');
-    // this.router.navigate(['/profesor/calendario']);
+    this.router.navigate(['calendario']);
   }
-  cargarTutorias(){
+  cargarTutorias() {
 
-   this.tutoriaService.getTutoriasDocente()
-  .subscribe((resp:any)=>{
+  this.tutoriaService.getTutoriasDocente()
+    .subscribe((resp: any[]) => {
 
-    this.proximasTutorias = resp;
+      if (!resp) return;
 
-    this.solicitudesPendientes =
-      resp.filter((t:any)=> t.estado === 'pendiente').length;
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
 
-  });
+      const inicioSemana = new Date(hoy);
+      inicioSemana.setDate(hoy.getDate() - hoy.getDay());
 
+      const finSemana = new Date(inicioSemana);
+      finSemana.setDate(inicioSemana.getDate() + 6);
+
+      // 🔹 Pendientes
+      this.solicitudesPendientes =
+        resp.filter(t => t.estado === 'pendiente').length;
+
+      // 🔹 Tutorías hoy
+      this.tutoriasHoy =
+        resp.filter(t => {
+          const fechaTutoria = new Date(t.fecha);
+          fechaTutoria.setHours(0,0,0,0);
+          return fechaTutoria.getTime() === hoy.getTime();
+        }).length;
+
+      // 🔹 Tutorías semanales
+      this.tutoriasSemanales =
+        resp.filter(t => {
+          const fechaTutoria = new Date(t.fecha);
+          return fechaTutoria >= inicioSemana &&
+                 fechaTutoria <= finSemana;
+        }).length;
+
+      // 🔹 Próximas tutorías (solo confirmadas y futuras)
+      this.proximasTutorias =
+        resp
+          .filter(t => {
+            const fechaTutoria = new Date(t.fecha);
+            return fechaTutoria >= hoy &&
+                   t.estado === 'confirmada';
+          })
+          .sort((a, b) =>
+            new Date(a.fecha).getTime() -
+            new Date(b.fecha).getTime()
+          )
+          .slice(0, 3) // solo 3 próximas
+          .map(t => ({
+            id: t.id,
+            materia: `Materia ID: ${t.materia_id}`,
+            estudiante: `Estudiante ID: ${t.estudiante_id}`,
+            fecha: t.fecha,
+            hora: `${t.hora_inicio} - ${t.hora_fin}`,
+            estado: this.formatearEstado(t.estado)
+          }));
+
+    });
+}
+formatearEstado(estado: string): string {
+
+  switch (estado) {
+    case 'confirmada': return 'Confirmada';
+    case 'pendiente': return 'Pendiente';
+    case 'cancelada': return 'Cancelada';
+    case 'finalizada': return 'Completada';
+    default: return estado;
+  }
 }
 
   getTutoriaColor(estado: string): string {

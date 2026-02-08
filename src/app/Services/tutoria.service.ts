@@ -72,8 +72,14 @@ cancelarTutoria(id:number, motivo:string, propuestas:any[]){
   return this.http.get<TutoriaInterface[]>(`${this.apiUrl}/estudiante`, { headers });
 }
   aceptarPropuesta(id: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/propuestas/alternativas/${id}/aceptar`, {});
-  }
+  const token = localStorage.getItem('token');
+
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`
+  });
+
+  return this.http.post(`${this.apiUrl}/propuestas/alternativas/${id}/aceptar`, {}, { headers });
+}
 
   editarTutoria(id: number, data: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, data);
@@ -98,11 +104,19 @@ cancelarTutoria(id:number, motivo:string, propuestas:any[]){
 
   // 🔹 HISTORIAL
   obtenerHistorial(): Observable<TutoriaInterface[]> {
-    return this.http.get<TutoriaInterface[]>(`${this.apiUrl}/historial/finalizadas`);
-  }
 
-  obtenerTutoriasDocente(){
+  const token = localStorage.getItem('token');
 
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`
+  });
+
+  return this.http.get<TutoriaInterface[]>(
+    `${this.apiUrl}/historial/finalizadas`,
+    { headers }
+  );
+}
+obtenerTutoriasDocente(){
   const token = localStorage.getItem('token');
 
   return this.http.get(
