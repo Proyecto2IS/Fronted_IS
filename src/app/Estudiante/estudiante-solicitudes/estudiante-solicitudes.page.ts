@@ -134,19 +134,26 @@ export class EstudianteSolicitudesPage implements OnInit {
     this.tutoriaService.obtenerTutoriasEstudiante()
       .subscribe({
         next: (resp: any[]) => {
-          console.log('🟢 RESPUESTA COMPLETA DEL BACKEND:', resp);
+          console.log('🟢 RESPUESTA COMPLETA DEL BACKEND:', JSON.stringify(resp, null, 2));
 
-          const solicitudesMapeadas: Solicitud[] = resp.map((t: any) => {
+          const solicitudesMapeadas: Solicitud[] = resp.map((t: any, index: number) => {
+            console.log(`\n📌 PROCESANDO TUTORÍA #${index}:`, t);
+            console.log(`\n   🔍 Propiedades de la tutoría:`, Object.keys(t));
 
             // 🔹 Extraer alternativas propuestas
             let alternativas: AlternativaPropuesta[] = [];
 
+            // Intentar diferentes rutas de acceso a las alternativas
             if (t.propuestas && Array.isArray(t.propuestas) && t.propuestas.length > 0) {
-              console.log('🟡 Propuestas encontradas para tutoría', t.id, ':', t.propuestas);
+              console.log(`  🟡 Propuestas encontradas (${t.propuestas.length}):`, t.propuestas);
 
-              // Iterar sobre todas las propuestas (aunque normalmente debería haber solo una)
-              t.propuestas.forEach((propuesta: any) => {
+              // Iterar sobre todas las propuestas
+              t.propuestas.forEach((propuesta: any, pIdx: number) => {
+                console.log(`    🔷 Propuesta #${pIdx}:`, propuesta);
+
                 if (propuesta.alternativas && Array.isArray(propuesta.alternativas)) {
+                  console.log(`      🔹 Alternativas encontradas (${propuesta.alternativas.length}):`, propuesta.alternativas);
+
                   const altsTemp = propuesta.alternativas.map((alt: any) => ({
                     id: alt.id,
                     fecha: alt.fecha,
@@ -157,16 +164,36 @@ export class EstudianteSolicitudesPage implements OnInit {
                 }
               });
             }
+            // Si no hay propuestas, probar si las alternativas vienen directamente
+            else if (t.alternativas && Array.isArray(t.alternativas)) {
+              console.log(`  🟣 Alternativas directas encontradas (${t.alternativas.length}):`, t.alternativas);
+              alternativas = t.alternativas.map((alt: any) => ({
+                id: alt.id,
+                fecha: alt.fecha,
+                hora_inicio: alt.hora_inicio,
+                hora_fin: alt.hora_fin
+              }));
+            }
+            // Intenta ProuestaAlternativa directamente en la tutoría
+            else if (t.ProuestaAlternativa && Array.isArray(t.ProuestaAlternativa)) {
+              console.log(`  🟠 ProuestaAlternativa encontrado:`, t.ProuestaAlternativa);
+              alternativas = t.ProuestaAlternativa.map((alt: any) => ({
+                id: alt.id,
+                fecha: alt.fecha,
+                hora_inicio: alt.hora_inicio,
+                hora_fin: alt.hora_fin
+              }));
+            }
 
-            console.log('🔵 Alternativas mapeadas para tutoría', t.id, ':', alternativas);
+            console.log(`  🔵 Alternativas finales para tutoría ${t.id} (${alternativas.length}):`, alternativas);
 
-            return {
+            const solicitudMapeada: Solicitud = {
               id: t.id,
               materia: t.tema || 'Sin materia',
-              docente: 'Docente ' + t.docente_id,
-              docenteEmail: '',
+              docente: t.docente_id ? 'Docente ' + t.docente_id : 'Sin docente',
+              docenteEmail: t.docente_email || '',
               fecha: t.fecha,
-              hora: t.hora_inicio + ' - ' + t.hora_fin,
+              hora: `${t.hora_inicio} - ${t.hora_fin}`,
               estado: this.mapearEstado(t.estado),
 
               numeroEstudiantesSolicitados: t.numero_estudiantes_solicitados,
@@ -176,29 +203,40 @@ export class EstudianteSolicitudesPage implements OnInit {
               fechaConfirmacion: t.fecha_confirmacion,
               fechaProcesada: t.updatedAt,
 
-              alternativasPropuestas: alternativas,
+              alternativasPropuestas: alternativas.length > 0 ? alternativas : undefined,
               alternativaSeleccionada: null,
               respondida: false
             };
+
+            console.log(`  ✅ Solicitud #${index} mapeada:`, solicitudMapeada);
+            return solicitudMapeada;
           });
 
-          console.log('🟢 SOLICITUDES MAPEADAS:', solicitudesMapeadas);
+          console.log('\n✨ TODAS LAS SOLICITUDES MAPEADAS:', solicitudesMapeadas);
 
           // 🔹 Filtrar por estado
           this.solicitudesPendientes =
             solicitudesMapeadas.filter(s => s.estado === 'Pendiente');
 
           this.solicitudesConfirmadas =
-            solicitudesMapeadas.filter(s => s.estado === 'Confirmada');
+            solicitudesMapeadas.filter(
+              s => s.estado === 'Confirmada' || s.estado === 'Finalizada'
+            );
 
           this.solicitudesProcesadas =
             solicitudesMapeadas.filter(
               s => s.estado === 'Rechazada' || s.estado === 'Cancelada'
             );
 
-          console.log('📋 Pendientes:', this.solicitudesPendientes);
-          console.log('✅ Confirmadas:', this.solicitudesConfirmadas);
-          console.log('🗂️ Procesadas:', this.solicitudesProcesadas);
+          console.log('\n📋 RESUMEN FINAL:');
+          console.log('  Pendientes:', this.solicitudesPendientes.length);
+          console.log('  Confirmadas:', this.solicitudesConfirmadas.length);
+          console.log('  Procesadas:', this.solicitudesProcesadas.length);
+          console.log('  Procesadas con alternativas:',
+            this.solicitudesProcesadas
+              .filter(s => s.alternativasPropuestas && s.alternativasPropuestas.length > 0)
+              .map(s => ({ id: s.id, estado: s.estado, alternativas: s.alternativasPropuestas?.length }))
+          );
 
           this.aplicarFiltroProcesadas();
         },
@@ -209,13 +247,14 @@ export class EstudianteSolicitudesPage implements OnInit {
   }
 
   mapearEstado(estado: string): string {
-    switch (estado) {
-      case 'pendiente': return 'Pendiente';
-      case 'confirmada': return 'Confirmada';
-      case 'rechazada': return 'Rechazada';
-      case 'cancelada': return 'Cancelada';
-      default: return estado;
-    }
+    const mapa: any = {
+      'pendiente': 'Pendiente',
+      'confirmada': 'Confirmada',
+      'finalizada': 'Finalizada',
+      'rechazada': 'Rechazada',
+      'cancelada': 'Cancelada'
+    };
+    return mapa[estado?.toLowerCase()] || estado;
   }
 
   cambiarTab(tab: string) {
@@ -228,19 +267,24 @@ export class EstudianteSolicitudesPage implements OnInit {
     this.aplicarFiltroProcesadas();
   }
 
-  aplicarFiltroProcesadas() {
-    if (this.filtroProcesadas === 'todas') {
-      this.solicitudesProcesadasFiltradas = [...this.solicitudesProcesadas];
-    } else if (this.filtroProcesadas === 'rechazadas') {
-      this.solicitudesProcesadasFiltradas = this.solicitudesProcesadas.filter(
-        s => s.estado === 'Rechazada'
+aplicarFiltroProcesadas() {
+
+  if (this.filtroProcesadas === 'todas') {
+    this.solicitudesProcesadasFiltradas = [...this.solicitudesProcesadas];
+
+  } else if (this.filtroProcesadas === 'rechazadas') {
+    this.solicitudesProcesadasFiltradas =
+      this.solicitudesProcesadas.filter(
+        s => s.estado.toLowerCase() === 'rechazada'
       );
-    } else if (this.filtroProcesadas === 'canceladas') {
-      this.solicitudesProcesadasFiltradas = this.solicitudesProcesadas.filter(
-        s => s.estado === 'Cancelada'
+
+  } else if (this.filtroProcesadas === 'canceladas') {
+    this.solicitudesProcesadasFiltradas =
+      this.solicitudesProcesadas.filter(
+        s => s.estado.toLowerCase() === 'cancelada'
       );
-    }
   }
+}
 
   seleccionarAlternativa(solicitud: Solicitud, index: number) {
     if (solicitud.respondida) {

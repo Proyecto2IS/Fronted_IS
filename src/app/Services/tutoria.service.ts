@@ -105,17 +105,17 @@ cancelarTutoria(id:number, motivo:string, propuestas:any[]){
   // 🔹 HISTORIAL
   obtenerHistorial(): Observable<TutoriaInterface[]> {
 
-  const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
-  const headers = new HttpHeaders({
-    Authorization: `Bearer ${token}`
-  });
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
 
-  return this.http.get<TutoriaInterface[]>(
-    `${this.apiUrl}/historial/finalizadas`,
-    { headers }
-  );
-}
+    return this.http.get<TutoriaInterface[]>(
+      `${this.apiUrl}/estudiante`,
+      { headers }
+    );
+  }
 obtenerTutoriasDocente(){
   const token = localStorage.getItem('token');
 

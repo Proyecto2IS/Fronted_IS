@@ -1,4 +1,3 @@
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -52,7 +51,10 @@ interface Tutoria {
   fecha: string;
   hora: string;
   duracion: number;
-  estado: string;
+
+  estadoOriginal: string;   // 👈 REAL DEL BACKEND
+  estado: string;           // 👈 FORMATEADO PARA UI
+
   numeroAsistieron: number;
   asistio: number;
   motivoCancelacion?: string;
@@ -65,7 +67,7 @@ interface Tutoria {
   templateUrl: './estudiante-historial.page.html',
   styleUrls: ['./estudiante-historial.page.scss'],
   standalone: true,
- imports: [
+  imports: [
     CommonModule,
     FormsModule,
     RouterModule,
@@ -86,207 +88,213 @@ interface Tutoria {
   ]
 })
 export class EstudianteHistorialPage implements OnInit {
-semanaActual: SemanaActual = {
-    inicio: '31 Ene',
-    fin: '06 Feb'
+
+  semanaActual: SemanaActual = {
+    inicio: '',
+    fin: ''
   };
-  asistenciasSemana: number = 3;
-  perdidasSemana: number = 1;
-  totalSemana: number = 4;
 
-  // Estadísticas generales
-  totalCompletadas: number = 0;
-  totalCanceladas: number = 0;
-  totalMaterias: number = 0;
+  asistenciasSemana = 0;
+  perdidasSemana = 0;
+  totalSemana = 0;
 
-  // Filtros
-  filtroPeriodo: string = 'mes';
-  filtroEstado: string = 'todos';
-  filtroMateria: string = 'todas';
+  totalCompletadas = 0;
+  totalCanceladas = 0;
+  totalMaterias = 0;
 
-  // Datos
+  filtroPeriodo = 'mes';
+  filtroEstado = 'todos';     // 👈 ahora usa valores backend
+  filtroMateria = 'todas';
+
   materias: string[] = [];
   todasLasTutorias: Tutoria[] = [];
   tutoriasFiltradas: Tutoria[] = [];
 
-  constructor(private router: Router,
-     private tutoriasService: TutoriasService
+  constructor(
+    private router: Router,
+    private tutoriasService: TutoriasService
   ) {
-    // Registrar los íconos
     addIcons({
-      'download-outline': downloadOutline,
-      'calendar-outline': calendarOutline,
-      'checkmark-done-outline': checkmarkDoneOutline,
-      'close-circle-outline': closeCircleOutline,
-      'book-outline': bookOutline,
-      'filter-outline': filterOutline,
-      'person-outline': personOutline,
-      'time-outline': timeOutline,
-      'hourglass-outline': hourglassOutline,
-      'checkmark-circle': checkmarkCircle,
-      'close-circle': closeCircle,
-      'information-circle-outline': informationCircleOutline,
-      'document-text-outline': documentTextOutline,
-      'eye-outline': eyeOutline,
-      'calendar-clear-outline': calendarClearOutline,
-      'add-circle-outline': addCircleOutline
+      downloadOutline,
+      calendarOutline,
+      checkmarkDoneOutline,
+      closeCircleOutline,
+      bookOutline,
+      filterOutline,
+      personOutline,
+      timeOutline,
+      hourglassOutline,
+      checkmarkCircle,
+      closeCircle,
+      informationCircleOutline,
+      documentTextOutline,
+      eyeOutline,
+      calendarClearOutline,
+      addCircleOutline
     });
   }
 
-ngOnInit() {
-  this.cargarHistorial();
-}
-cargarHistorial() {
+  ngOnInit() {
+    this.cargarHistorial();
+  }
 
-  this.tutoriasService.obtenerHistorial()
-    .subscribe({
+  cargarHistorial() {
+    this.tutoriasService.obtenerHistorial()
+      .subscribe({
 
-      next: (data: any[]) => {
+        next: (data: any[]) => {
+          console.log('📚 Datos del historial recibidos:', data);
 
-        this.todasLasTutorias = data.map((t: any) => ({
+          this.todasLasTutorias = data.map((t: any) => ({
 
-  id: t.id,
-  materia: t.materia_nombre,
-  docente: t.docente_nombre,
-  docenteEmail: t.docente_email,
-  fecha: t.fecha,
-  hora: `${t.hora_inicio} - ${t.hora_fin}`,
-  duracion: t.duracion,
-  estado: this.formatearEstado(t.estado),
-  motivoCancelacion: t.motivo_cancelacion,
-  fechaCompleta: new Date(t.fecha),
-  numeroAsistieron: t.numero_estudiantes_asistieron,
-  asistio: t.numero_estudiantes_asistieron || 0
+            id: t.id,
+            materia: t.materia_nombre,
+            docente: t.docente_nombre,
+            docenteEmail: t.docente_email,
+            fecha: t.fecha,
+            hora: `${t.hora_inicio} - ${t.hora_fin}`,
+            duracion: t.duracion,
 
-}));
+            estadoOriginal: t.estado,                 // 👈 REAL
+            estado: this.formatearEstado(t.estado),   // 👈 VISUAL
 
-        this.materias = [...new Set(this.todasLasTutorias.map(t => t.materia))];
+            motivoCancelacion: t.motivo_cancelacion,
+            notas: t.notas,
+            fechaCompleta: new Date(t.fecha),
+            numeroAsistieron: t.numero_estudiantes_asistieron ?? 0,
+            asistio: t.numero_estudiantes_asistieron ?? 0
 
-        this.aplicarFiltros();
-        this.calcularEstadisticas();
-        this.calcularSemanaActual();
+          }));
 
-      },
+          console.log('✅ Tutorías mapeadas:', this.todasLasTutorias);
 
-      error: (err) => {
-        console.error('Error cargando historial', err);
-      }
+          this.materias = [...new Set(this.todasLasTutorias.map(t => t.materia))];
 
-    });
-}
-formatearEstado(estado: string): string {
+          this.aplicarFiltros();
+          this.calcularEstadisticas();
+          this.calcularSemanaActual();
 
-  const mapa: any = {
-    'finalizada': 'Completada',
-    'cancelada': 'Cancelada',
-    'confirmada': 'Completada'
-  };
+          console.log('📊 Tutorías filtradas:', this.tutoriasFiltradas);
+        },
 
-  return mapa[estado?.toLowerCase()] || estado;
-}
+        error: (err) => {
+          console.error('❌ Error cargando historial', err);
+        }
+      });
+  }
+
+  formatearEstado(estado: string): string {
+    const mapa: any = {
+      'pendiente': 'Pendiente',
+      'confirmada': 'Completada',
+      'finalizada': 'Completada',
+      'rechazada': 'Rechazada',
+      'cancelada': 'Cancelada'
+    };
+    return mapa[estado?.toLowerCase()] || estado;
+  }
+
   aplicarFiltros() {
+
     let resultado = [...this.todasLasTutorias];
-
-    // Filtro por período
     const hoy = new Date();
-    switch (this.filtroPeriodo) {
-      case 'semana':
-        const inicioDeSemana = new Date(hoy);
-        inicioDeSemana.setDate(hoy.getDate() - 7);
-        resultado = resultado.filter(t => t.fechaCompleta >= inicioDeSemana);
-        break;
-      case 'mes':
-        const inicioDeMes = new Date(hoy);
-        inicioDeMes.setDate(hoy.getDate() - 30);
-        resultado = resultado.filter(t => t.fechaCompleta >= inicioDeMes);
-        break;
-      case 'trimestre':
-        const inicioDeTrimestre = new Date(hoy);
-        inicioDeTrimestre.setDate(hoy.getDate() - 90);
-        resultado = resultado.filter(t => t.fechaCompleta >= inicioDeTrimestre);
-        break;
-      case 'semestre':
-        const inicioDeSemestre = new Date(hoy);
-        inicioDeSemestre.setDate(hoy.getDate() - 180);
-        resultado = resultado.filter(t => t.fechaCompleta >= inicioDeSemestre);
-        break;
+
+    // 🔹 PERIODO
+    if (this.filtroPeriodo !== 'todos') {
+
+      let dias = 0;
+
+      if (this.filtroPeriodo === 'semana') dias = 7;
+      if (this.filtroPeriodo === 'mes') dias = 30;
+      if (this.filtroPeriodo === 'trimestre') dias = 90;
+      if (this.filtroPeriodo === 'semestre') dias = 180;
+
+      const inicio = new Date(hoy);
+      inicio.setDate(hoy.getDate() - dias);
+
+      resultado = resultado.filter(t => t.fechaCompleta >= inicio);
     }
 
-    // Filtro por estado
+    // 🔹 ESTADO (USA ESTADO REAL)
     if (this.filtroEstado !== 'todos') {
-      resultado = resultado.filter(t => t.estado.toLowerCase() === this.filtroEstado);
+      if (this.filtroEstado === 'completadas') {
+        // Mostrar tanto finalizadas como confirmadas
+        resultado = resultado.filter(
+          t => t.estadoOriginal === 'finalizada' || t.estadoOriginal === 'confirmada'
+        );
+      } else {
+        resultado = resultado.filter(
+          t => t.estadoOriginal === this.filtroEstado
+        );
+      }
     }
 
-    // Filtro por materia
+    // 🔹 MATERIA
     if (this.filtroMateria !== 'todas') {
-      resultado = resultado.filter(t => t.materia === this.filtroMateria);
+      resultado = resultado.filter(
+        t => t.materia === this.filtroMateria
+      );
     }
 
-    // Ordenar por fecha descendente
-    resultado.sort((a, b) => b.fechaCompleta.getTime() - a.fechaCompleta.getTime());
+    resultado.sort((a, b) =>
+      b.fechaCompleta.getTime() - a.fechaCompleta.getTime()
+    );
 
     this.tutoriasFiltradas = resultado;
   }
 
   calcularEstadisticas() {
-    this.totalCompletadas = this.tutoriasFiltradas.filter(t => t.estado === 'Completada').length;
-    this.totalCanceladas = this.tutoriasFiltradas.filter(t => t.estado === 'Cancelada').length;
 
-    const materiasUnicas = new Set(this.tutoriasFiltradas.map(t => t.materia));
+    this.totalCompletadas =
+      this.tutoriasFiltradas.filter(
+        t => t.estadoOriginal === 'finalizada' || t.estadoOriginal === 'confirmada'
+      ).length;
+
+    this.totalCanceladas =
+      this.tutoriasFiltradas.filter(
+        t => t.estadoOriginal === 'cancelada'
+      ).length;
+
+    const materiasUnicas =
+      new Set(this.tutoriasFiltradas.map(t => t.materia));
+
     this.totalMaterias = materiasUnicas.size;
   }
 
-calcularSemanaActual() {
+  calcularSemanaActual() {
 
-  const hoy = new Date();
-  const inicioDeSemana = new Date(hoy);
-  inicioDeSemana.setDate(hoy.getDate() - 7);
+    const hoy = new Date();
+    const inicio = new Date(hoy);
+    inicio.setDate(hoy.getDate() - 7);
 
-  const tutoriasSemana = this.todasLasTutorias.filter(
-    t => t.fechaCompleta >= inicioDeSemana && t.estado === 'Completada'
-  );
+    const tutoriasSemana =
+      this.todasLasTutorias.filter(
+        t => t.fechaCompleta >= inicio &&
+             (t.estadoOriginal === 'finalizada' || t.estadoOriginal === 'confirmada')
+      );
 
-  this.totalSemana = tutoriasSemana.length;
+    this.totalSemana = tutoriasSemana.length;
 
-  this.asistenciasSemana = tutoriasSemana
-    .filter(t => t.numeroAsistieron > 0).length;
+    this.asistenciasSemana =
+      tutoriasSemana.filter(t => t.numeroAsistieron > 0).length;
 
-  this.perdidasSemana = tutoriasSemana
-    .filter(t => t.numeroAsistieron === 0).length;
-}
+    this.perdidasSemana =
+      tutoriasSemana.filter(t => t.numeroAsistieron === 0).length;
+  }
 
   onFiltroChange() {
-    console.log('Filtros actualizados:', {
-      periodo: this.filtroPeriodo,
-      estado: this.filtroEstado,
-      materia: this.filtroMateria
-    });
     this.aplicarFiltros();
     this.calcularEstadisticas();
   }
 
   getTutoriaColor(estado: string): string {
-    const colores: { [key: string]: string } = {
-      'Completada': 'success',
-      'Cancelada': 'danger'
-    };
-    return colores[estado] || 'medium';
-  }
-
-  verDetalles(tutoria: Tutoria) {
-    console.log('Ver detalles de tutoría:', tutoria);
-    // Aquí se abriría un modal con todos los detalles
-  }
-
-  onDescargarReporte() {
-    this.exportarPDF();
-  }
-
-  onGenerarReporteSemanal() {
-    this.exportarExcel();
+    if (estado === 'Completada') return 'success';
+    if (estado === 'Cancelada') return 'danger';
+    return 'medium';
   }
 
   exportarPDF() {
+
     const doc = new jsPDF();
 
     doc.setFontSize(16);
@@ -307,11 +315,21 @@ calcularSemanaActual() {
       body: filas
     });
 
-    doc.save('reporte_tutorías_estudiante.pdf');
+    doc.save('reporte_tutorias_estudiante.pdf');
   }
 
-  exportarExcel() {
-    console.log('Exportando a Excel...');
-    // Implementar exportación a Excel (requiere librería adicional como xlsx)
+  onDescargarReporte() {
+    this.exportarPDF();
   }
+
+  onGenerarReporteSemanal() {
+    console.log('Generar reporte semanal');
+    // TODO: Implementar reporte semanal
+  }
+
+  verDetalles(tutoria: Tutoria) {
+    console.log('Ver detalles de tutoría:', tutoria);
+    // TODO: Navegar a detalle o abrir modal
+  }
+
 }
