@@ -144,40 +144,28 @@ export class EstudianteSolicitudesPage implements OnInit {
             let alternativas: AlternativaPropuesta[] = [];
 
             // Intentar diferentes rutas de acceso a las alternativas
-            if (t.propuestas && Array.isArray(t.propuestas) && t.propuestas.length > 0) {
-              console.log(`  🟡 Propuestas encontradas (${t.propuestas.length}):`, t.propuestas);
+            if (t.PropuestasDocente && Array.isArray(t.PropuestasDocente) && t.PropuestasDocente.length > 0) {
+              console.log(`  🟡 PropuestasDocente encontradas (${t.PropuestasDocente.length}):`, t.PropuestasDocente);
 
-              // Iterar sobre todas las propuestas
-              t.propuestas.forEach((propuesta: any, pIdx: number) => {
-                console.log(`    🔷 Propuesta #${pIdx}:`, propuesta);
+              // Tomar solo la última propuesta
+              const ultimaPropuesta = t.PropuestasDocente[t.PropuestasDocente.length - 1];
+              console.log(`  🔷 Última propuesta seleccionada:`, ultimaPropuesta);
 
-                if (propuesta.alternativas && Array.isArray(propuesta.alternativas)) {
-                  console.log(`      🔹 Alternativas encontradas (${propuesta.alternativas.length}):`, propuesta.alternativas);
+              if (ultimaPropuesta.Alternativas && Array.isArray(ultimaPropuesta.Alternativas)) {
+                console.log(`    🔹 Alternativas encontradas (${ultimaPropuesta.Alternativas.length}):`, ultimaPropuesta.Alternativas);
 
-                  const altsTemp = propuesta.alternativas.map((alt: any) => ({
-                    id: alt.id,
-                    fecha: alt.fecha,
-                    hora_inicio: alt.hora_inicio,
-                    hora_fin: alt.hora_fin
-                  }));
-                  alternativas.push(...altsTemp);
-                }
-              });
+                alternativas = ultimaPropuesta.Alternativas.map((alt: any) => ({
+                  id: alt.id,
+                  fecha: alt.fecha,
+                  hora_inicio: alt.hora_inicio,
+                  hora_fin: alt.hora_fin
+                }));
+              }
             }
-            // Si no hay propuestas, probar si las alternativas vienen directamente
+            // Si no hay PropuestasDocente, probar si las alternativas vienen directamente
             else if (t.alternativas && Array.isArray(t.alternativas)) {
               console.log(`  🟣 Alternativas directas encontradas (${t.alternativas.length}):`, t.alternativas);
               alternativas = t.alternativas.map((alt: any) => ({
-                id: alt.id,
-                fecha: alt.fecha,
-                hora_inicio: alt.hora_inicio,
-                hora_fin: alt.hora_fin
-              }));
-            }
-            // Intenta ProuestaAlternativa directamente en la tutoría
-            else if (t.ProuestaAlternativa && Array.isArray(t.ProuestaAlternativa)) {
-              console.log(`  🟠 ProuestaAlternativa encontrado:`, t.ProuestaAlternativa);
-              alternativas = t.ProuestaAlternativa.map((alt: any) => ({
                 id: alt.id,
                 fecha: alt.fecha,
                 hora_inicio: alt.hora_inicio,
@@ -242,6 +230,8 @@ export class EstudianteSolicitudesPage implements OnInit {
         },
         error: (err) => {
           console.error('❌ Error al cargar solicitudes:', err);
+          console.error('❌ Response:', err.error);
+          alert('Error al cargar solicitudes: ' + (err.error?.error || err.statusText));
         }
       });
   }
@@ -315,20 +305,10 @@ aplicarFiltroProcesadas() {
       next: (response) => {
         console.log('✅ Alternativa aceptada con éxito:', response);
 
-        solicitud.respondida = true;
-        solicitud.estado = 'Confirmada';
+        // 🔄 Recargar las solicitudes desde el backend
+        this.cargarSolicitudes();
 
-        // Remover de pendientes y procesadas
-        this.solicitudesPendientes =
-          this.solicitudesPendientes.filter(s => s.id !== solicitud.id);
-
-        this.solicitudesProcesadas =
-          this.solicitudesProcesadas.filter(s => s.id !== solicitud.id);
-
-        // Agregar a confirmadas
-        this.solicitudesConfirmadas.push(solicitud);
-
-        this.aplicarFiltroProcesadas();
+        alert('✅ Alternativa aceptada. Tutoría confirmada.');
       },
       error: (err) => {
         console.error('❌ Error al aceptar alternativa:', err);
