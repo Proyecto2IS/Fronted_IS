@@ -168,14 +168,6 @@
             </div>
           </div>
 
-          <div class="evento-detalle-footer">
-            <ion-button fill="clear" size="small" (click)="verDetalleEvento(evento)">
-              <ion-icon name="eye-outline" slot="start"></ion-icon>
-              Ver detalles
-            </ion-button>
-          </div>
-        </div>
-
         <div class="empty-eventos-dia" *ngIf="!diaSeleccionado.eventos || diaSeleccionado.eventos.length === 0">
           <ion-icon name="calendar-clear-outline"></ion-icon>
           <p>No hay tutorías programadas para este día</p>
@@ -183,21 +175,4 @@
       </div>
     </div>
   </div>
-
-  <!-- Leyenda -->
-  <div class="calendario-leyenda">
-    <div class="leyenda-item">
-      <div class="leyenda-dot confirmada"></div>
-      <span>Confirmada</span>
-    </div>
-    <div class="leyenda-item">
-      <div class="leyenda-dot pendiente"></div>
-      <span>Pendiente</span>
-    </div>
-    <div class="leyenda-item">
-      <div class="leyenda-dot cancelada"></div>
-      <span>Cancelada</span>
-    </div>
-  </div>
-
 </div>

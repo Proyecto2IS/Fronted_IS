@@ -56,8 +56,6 @@ ngOnInit() {
     const usuario = JSON.parse(usuarioStorage);
     this.nombreEstudiante = usuario.nombre;
   }
-
-  this.cargarTutorias();
   this.cargarEstadisticas();
 
 }
@@ -67,34 +65,33 @@ cargarEstadisticas() {
 
       this.tutorias = data;
 
-      // 🔹 Total
+      // Totales
       this.totalTutorias = data.length;
 
-      // 🔹 Pendientes
       this.solicitudesPendientes = data.filter(t =>
         t.estado === 'pendiente'
       ).length;
 
-      // 🔹 Confirmadas
       this.tutoriasConfirmadas = data.filter(t =>
         t.estado === 'confirmada'
       ).length;
 
-      // 🔹 Próximas tutorías (confirmadas y futuras)
+      // Próximas tutorías = confirmadas y futuras
       const hoy = new Date();
 
       this.proximasTutorias = data
-        .filter(t =>
-          t.estado === 'confirmada' &&
-          new Date(t.fecha) >= hoy
-        )
+        .filter(t => {
+          if (t.estado !== 'confirmada') return false;
+
+          const fechaTutoria = new Date(`${t.fecha}T${t.hora_inicio}`);
+          return fechaTutoria >= hoy;
+        })
         .map(t => ({
           id: t.id,
-          materia: 'Materia', // si no viene el nombre debes mapearlo desde backend
-          docente: 'Docente', // igual aquí
-          estado: this.formatearEstado(t.estado),
           fecha: t.fecha,
-          hora: t.hora_inicio
+          hora: `${t.hora_inicio} - ${t.hora_fin}`,
+          estado: this.formatearEstado(t.estado),
+          docente_id: t.docente_id
         }));
 
     },
@@ -102,31 +99,6 @@ cargarEstadisticas() {
       console.error('Error cargando estadísticas', err);
     }
   });
-}
-
-cargarTutorias() {
-
-
-  this.tutoriaService.obtenerTutoriasEstudiante()
-    .subscribe({
-      next: (data) => {
-
-        // Filtrar próximas (no finalizadas) y transformar para la vista
-        const activas = data.filter(t => t.estado !== 'finalizada');
-        this.proximasTutorias = activas.map(t => ({
-        id: t.id!,
-        fecha: t.fecha,
-        hora: `${t.hora_inicio} - ${t.hora_fin}`,
-        estado: this.formatearEstado(t.estado),
-        docente_id: t.docente_id
-      }));
-
-
-      },
-      error: (err) => {
-        console.error('Error cargando tutorías', err);
-      }
-    });
 }
 
 formatearEstado(estado?: string): string {

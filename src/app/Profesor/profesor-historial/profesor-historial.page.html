@@ -4,11 +4,7 @@
       <ion-back-button defaultHref="/profesor"></ion-back-button>
     </ion-buttons>
     <ion-title>Historial de Tutorías</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="onExportarReporte()">
-        <ion-icon slot="icon-only" name="download-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+
   </ion-toolbar>
 </ion-header>
 
@@ -80,21 +76,6 @@
                 <ion-select-option value="cancelada">Canceladas</ion-select-option>
                 <ion-select-option value="confirmada">Confirmadas</ion-select-option>
                 <ion-select-option value="pendiente">Pendientes</ion-select-option>
-              </ion-select>
-            </ion-item>
-          </div>
-
-          <div class="filtro-item full-width">
-            <ion-item lines="none">
-              <ion-select
-                label="Materia"
-                [(ngModel)]="filtroMateria"
-                (ionChange)="onFiltroChange()">
-                <ion-select-option value="todas">Todas las materias</ion-select-option>
-                <ion-select-option *ngFor="let materia of materias" [value]="materia.nombre">
-
-                  {{ materia.nombre }}
-                </ion-select-option>
               </ion-select>
             </ion-item>
           </div>
@@ -185,10 +166,6 @@
             <ion-button fill="outline" size="small" (click)="exportarPDF()">
               <ion-icon name="document-outline" slot="start"></ion-icon>
               PDF
-            </ion-button>
-            <ion-button fill="outline" size="small" (click)="exportarExcel()">
-              <ion-icon name="grid-outline" slot="start"></ion-icon>
-              Excel
             </ion-button>
           </div>
         </div>

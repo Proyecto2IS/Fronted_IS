@@ -19,7 +19,7 @@ import {
 } from 'ionicons/icons';
 import { TutoriasService } from 'src/app/Services/tutoria.service';
 import { TutoriaInterface } from 'src/app/Interfaces/tutoria.interface';
-
+import { Router } from '@angular/router';
 export interface EventoCalendario {
   id: number;
   titulo: string;
@@ -79,6 +79,7 @@ export class CalendarioComponent  implements OnInit {
 
   constructor(
     private tutoriasService: TutoriasService,
+    private router: Router
   ) {
     // Registrar íconos
     addIcons({
@@ -124,30 +125,41 @@ export class CalendarioComponent  implements OnInit {
   }
 
 cargarTutorias() {
-
   const request =
     this.rol === 'docente'
       ? this.tutoriasService.getTutoriasDocente()
       : this.tutoriasService.obtenerTutoriasEstudiante();
 
   request.subscribe({
-    next: (tutorias: TutoriaInterface[]) => {
+    next: (tutorias) => {
 
-      this.eventos = tutorias.map(t =>
+      const filtradas = tutorias.filter(t =>
+        ['confirmada', 'pendiente', 'cancelada'].includes(
+          (t.estado || '').toLowerCase()
+        )
+      );
+
+      this.eventos = filtradas.map(t =>
         this.mapearTutoriaAEvento(t)
       );
 
       this.generarCalendario();
       this.agruparEventosPorFecha();
-    },
-    error: (err: any) => {
-      console.error('Error al cargar tutorías', err);
     }
   });
 }
 mapearTutoriaAEvento(t: TutoriaInterface): EventoCalendario {
 
-  const fechaCompleta = new Date(`${t.fecha}T${t.hora_inicio}`);
+  const [year, month, day] = t.fecha.split('-').map(Number);
+  const [hour, minute] = t.hora_inicio.split(':').map(Number);
+
+  const fechaCompleta = new Date(
+    year,
+    month - 1, // JS empieza en 0
+    day,
+    hour,
+    minute
+  );
 
   return {
     id: t.id!,
@@ -161,15 +173,22 @@ mapearTutoriaAEvento(t: TutoriaInterface): EventoCalendario {
   };
 }
 
-  mapearEstado(estado: string | undefined): 'Confirmada' | 'Pendiente' | 'Cancelada' {
-    if (!estado) return 'Pendiente';
-    const estadoMap: { [key: string]: 'Confirmada' | 'Pendiente' | 'Cancelada' } = {
-      'confirmada': 'Confirmada',
-      'pendiente': 'Pendiente',
-      'cancelada': 'Cancelada'
-    };
-    return estadoMap[estado.toLowerCase()] || 'Pendiente';
-  }
+ mapearEstado(
+  estado: string | undefined
+): 'Confirmada' | 'Pendiente' | 'Cancelada' {
+
+  if (!estado) return 'Cancelada'; // o lo que tenga sentido para ti
+
+  const estadoMap: any = {
+    confirmada: 'Confirmada',
+    pendiente: 'Pendiente',
+    cancelada: 'Cancelada',
+    rechazada: 'Cancelada',
+    finalizada: 'Confirmada'
+  };
+
+  return estadoMap[estado.toLowerCase()] ?? 'Cancelada';
+}
 calcularDuracion(inicio: string, fin: string): number {
   const [h1, m1] = inicio.split(':').map(Number);
   const [h2, m2] = fin.split(':').map(Number);
@@ -315,6 +334,7 @@ calcularDuracion(inicio: string, fin: string): number {
   verDetalleEvento(evento: EventoCalendario) {
     console.log('Ver detalle de evento:', evento);
     this.eventoSeleccionado.emit(evento);
+    this.router.navigate(['/estudiante-solicitudes', evento.id]);
   }
 
   getColorEstado(estado: string): string {

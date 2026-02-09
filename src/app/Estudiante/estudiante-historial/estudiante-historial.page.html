@@ -23,8 +23,7 @@
             <ion-icon name="calendar-outline"></ion-icon>
           </div>
           <div class="resumen-info">
-            <h3>Asistencia Semanal</h3>
-            <p>Del {{ semanaActual.inicio }} al {{ semanaActual.fin }}</p>
+            <h3>Asistencia</h3>
           </div>
         </div>
 
@@ -48,15 +47,6 @@
             <p>Total</p>
           </div>
         </div>
-
-        <ion-button
-          expand="block"
-          fill="outline"
-          size="small"
-          (click)="onGenerarReporteSemanal()">
-          <ion-icon name="document-text-outline" slot="start"></ion-icon>
-          Generar reporte semanal
-        </ion-button>
       </ion-card-content>
     </ion-card>
 
@@ -104,8 +94,6 @@
                 (ionChange)="onFiltroChange()">
                 <ion-select-option value="semana">Esta semana</ion-select-option>
                 <ion-select-option value="mes">Este mes</ion-select-option>
-                <ion-select-option value="trimestre">Último trimestre</ion-select-option>
-                <ion-select-option value="semestre">Este semestre</ion-select-option>
                 <ion-select-option value="todos">Todos</ion-select-option>
               </ion-select>
             </ion-item>
@@ -123,20 +111,6 @@
                 <ion-select-option value="finalizada">Finalizadas</ion-select-option>
                 <ion-select-option value="rechazada">Rechazadas</ion-select-option>
                 <ion-select-option value="cancelada">Canceladas</ion-select-option>
-              </ion-select>
-            </ion-item>
-          </div>
-
-          <div class="filtro-item full-width">
-            <ion-item lines="none">
-              <ion-select
-                label="Materia"
-                [(ngModel)]="filtroMateria"
-                (ionChange)="onFiltroChange()">
-                <ion-select-option value="todas">Todas las materias</ion-select-option>
-                <ion-select-option *ngFor="let materia of materias" [value]="materia">
-                  {{ materia }}
-                </ion-select-option>
               </ion-select>
             </ion-item>
           </div>
@@ -223,13 +197,6 @@
               </div>
               <p>{{ tutoria.notas }}</p>
             </div>
-          </div>
-
-          <div class="tutoria-footer">
-            <ion-button fill="clear" size="small" (click)="verDetalles(tutoria)">
-              <ion-icon name="eye-outline" slot="start"></ion-icon>
-              Ver detalles completos
-            </ion-button>
           </div>
         </ion-card-content>
       </ion-card>

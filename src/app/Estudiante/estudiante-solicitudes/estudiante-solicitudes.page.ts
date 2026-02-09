@@ -318,8 +318,8 @@ aplicarFiltroProcesadas() {
   }
 
   verDetalles(solicitud: Solicitud) {
-    console.log('👁️ Ver detalles de solicitud:', solicitud);
-    // Aquí se abriría un modal con todos los detalles
+    console.log('👁️ Navegando a detalles de solicitud:', solicitud.id);
+    this.router.navigate(['/estudiante-solicitudes', solicitud.id]);
   }
 
   onRefresh() {
