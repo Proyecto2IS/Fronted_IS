@@ -12,3 +12,12 @@ export interface TutoriaInterface {
   estado?: 'pendiente' | 'confirmada' | 'rechazada' | 'cancelada' | 'finalizada';
   motivo_cancelacion?: string;
 }
+export interface CrearTutoriaDTO {
+  docente_id: number;
+  materia_id: number;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  numero_estudiantes_solicitados: number;
+  tema?: string;
+}

@@ -7,6 +7,12 @@ import { TutoriaInterface } from '../Interfaces/tutoria.interface';
   providedIn: 'root'
 })
 export class TutoriasService {
+    private getHeaders() {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+  }
 
   apiUrl = 'http://localhost:3000/tutorias';
 
@@ -22,6 +28,17 @@ export class TutoriasService {
 
     return this.http.get<TutoriaInterface[]>(`${this.apiUrl}/docente`, { headers });
   }
+  getMaterias() {
+  return this.http.get<any[]>('http://localhost:3000/tutorias/materias');
+}
+
+getEstudiantes() {
+  return this.http.get<any[]>('http://localhost:3000/usuarios/estudiantes');
+}
+
+getDocentes() {
+  return this.http.get<any[]>('http://localhost:3000/usuarios/docentes');
+}
  actualizarEstadoTutoria(id: number, estado: string) {
   const token = localStorage.getItem('token');
 
@@ -57,10 +74,13 @@ cancelarTutoria(id:number, motivo:string, propuestas:any[]){
 
 
 // 🔹 ESTUDIANTE
-  crearTutoria(data: TutoriaInterface): Observable<any> {
-    return this.http.post(`${this.apiUrl}`, data);
+   crearTutoria(data: TutoriaInterface): Observable<TutoriaInterface> {
+    return this.http.post<TutoriaInterface>(
+      `${this.apiUrl}/`,
+      data,
+      { headers: this.getHeaders() }
+    );
   }
-
  obtenerTutoriasEstudiante(): Observable<TutoriaInterface[]> {
 
   const token = localStorage.getItem('token');
@@ -128,7 +148,16 @@ obtenerTutoriasDocente(){
     }
   );
 }
-
+getDocentesPorMateria(materiaId: number) {
+  return this.http.get<any[]>(
+    `http://localhost:3000/usuarios/docentes/materia/${materiaId}`
+  );
+}
+getDisponibilidadDocente(docenteId: number) {
+  return this.http.get<any[]>(
+    `http://localhost:3000/disponibilidad/docente/${docenteId}`
+  );
+}
 
 }
 

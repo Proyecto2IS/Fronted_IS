@@ -4,6 +4,11 @@
       <ion-back-button defaultHref="/profesor"></ion-back-button>
     </ion-buttons>
     <ion-title>Solicitudes de Tutoría</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onRefresh()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -250,6 +255,18 @@
                   </div>
                 </div>
               </div>
+
+              <div class="fecha-procesada">
+                <ion-icon name="checkmark-outline"></ion-icon>
+                <span>Procesada el {{ solicitud.fechaProcesada }}</span>
+              </div>
+            </div>
+
+            <div class="solicitud-footer-compact">
+              <ion-button fill="clear" size="small" (click)="verDetallesSolicitud(solicitud)">
+                <ion-icon name="eye-outline" slot="start"></ion-icon>
+                Ver detalles
+              </ion-button>
             </div>
           </ion-card-content>
         </ion-card>

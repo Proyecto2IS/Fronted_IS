@@ -65,8 +65,10 @@ export class ProfesorPage implements OnInit {
   tutoriasHoy: number = 0;
   tutoriasSemanales: number = 0;
 
-  proximasTutorias: Tutoria[] = [];
 
+  proximasTutorias: Tutoria[] = [];
+  materiasMap = new Map<number, string>();
+  estudiantesMap = new Map<number, string>();
   constructor(private router: Router, private tutoriaService: TutoriasService) {
     // Registrar los íconos
     addIcons({
@@ -91,10 +93,27 @@ export class ProfesorPage implements OnInit {
   if (usuarioStorage) {
     const usuario = JSON.parse(usuarioStorage);
     this.nombreProfesor = usuario.nombre;
-    this.cargarTutorias();
+    this.cargarCatalogos();
   }
 }
+cargarCatalogos() {
+  Promise.all([
+    this.tutoriaService.getMaterias().toPromise(),
+    this.tutoriaService.getEstudiantes().toPromise()
+  ]).then(([materias, estudiantes]) => {
 
+    (materias || []).forEach(m =>
+      this.materiasMap.set(m.id, m.nombre)
+    );
+
+    (estudiantes || []).forEach(e =>
+      this.estudiantesMap.set(e.id, e.nombre)
+    );
+
+    // 👇 recién aquí cargas tutorías
+    this.cargarTutorias();
+  });
+}
   navigateToDisponibilidad() {
     // Lógica de navegación
     console.log('Navegar a disponibilidad');
@@ -164,14 +183,13 @@ navigateToSolicitudes() {
           )
           .slice(0, 3) // solo 3 próximas
           .map(t => ({
-            id: t.id,
-            materia: `Materia ID: ${t.materia_id}`,
-            estudiante: `Estudiante ID: ${t.estudiante_id}`,
-            fecha: t.fecha,
-            hora: `${t.hora_inicio} - ${t.hora_fin}`,
-            estado: this.formatearEstado(t.estado)
-          }));
-
+  id: t.id,
+  materia: this.materiasMap.get(t.materia_id) || 'Materia no encontrada',
+  estudiante: this.estudiantesMap.get(t.estudiante_id) || 'Estudiante no encontrado',
+  fecha: t.fecha,
+  hora: `${t.hora_inicio} - ${t.hora_fin}`,
+  estado: this.formatearEstado(t.estado)
+}));
     });
 }
 formatearEstado(estado: string): string {

@@ -91,6 +91,9 @@ motivo = '';
 fecha = '';
 horaInicio = '';
 horaFin = '';
+materiasMap = new Map<number, string>();
+estudiantesMap = new Map<number, string>();
+
   solicitudesPendientes: Solicitud[] = [];
   solicitudesProcesadas: Solicitud[] = [];
   solicitudesProcesadasFiltradas: Solicitud[] = [];
@@ -119,9 +122,30 @@ horaFin = '';
 
   ngOnInit() {
     console.log('Página de solicitudes inicializada');
-    this.aplicarFiltroProcesadas();
-    this.cargarSolicitudes();
+    this.cargarCatalogos();
   }
+cargarCatalogos() {
+  Promise.all([
+    this.tutoriaService.getMaterias().toPromise(),
+    this.tutoriaService.getEstudiantes().toPromise()
+  ]).then(([materias, estudiantes]) => {
+
+    if (materias) {
+      materias.forEach((m:any) =>
+        this.materiasMap.set(m.id, m.nombre)
+      );
+    }
+
+    if (estudiantes) {
+      estudiantes.forEach((e:any) =>
+        this.estudiantesMap.set(e.id, e.nombre)
+      );
+    }
+
+    // 👇 ahora sí cargas solicitudes
+    this.cargarSolicitudes();
+  });
+}
 
   cambiarTab(tab: string) {
     this.tabActivo = tab;
@@ -133,16 +157,16 @@ horaFin = '';
   .subscribe((resp: any) => {
 
     const solicitudesMapeadas = resp.map((t:any)=>({
-      id: t.id,
-      estudiante: 'Estudiante ' + t.estudiante_id,   // temporal
-      correo: '',
-      materia: t.tema,
-      fecha: t.fecha,
-      hora: t.hora_inicio + ' - ' + t.hora_fin,
-      motivo: '',
-      tiempoTranscurrido: '',
-      estado: t.estado
-    }));
+  id: t.id,
+  estudiante: this.estudiantesMap.get(t.estudiante_id) || 'Estudiante no encontrado',
+  correo: '',
+  materia: this.materiasMap.get(t.materia_id) || 'Materia no encontrada',
+  fecha: t.fecha,
+  hora: `${t.hora_inicio} - ${t.hora_fin}`,
+  motivo: t.tema,
+  tiempoTranscurrido: '',
+  estado: t.estado
+}));
 
     this.solicitudesPendientes =
       solicitudesMapeadas.filter((t:any)=> t.estado === 'pendiente');

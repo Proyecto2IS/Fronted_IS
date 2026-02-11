@@ -80,8 +80,10 @@ interface Tutoria {
     IonSelectOption
   ]
 })
-export class ProfesorHistorialPage implements OnInit {
 
+export class ProfesorHistorialPage implements OnInit {
+ materiasMap = new Map<number, string>();
+ estudiantesMap = new Map<number, string>();
   // Estadísticas
   totalPendientes = 0;
   totalConfirmadas = 0;
@@ -96,18 +98,8 @@ export class ProfesorHistorialPage implements OnInit {
 
 
  // Datos
-  materias: Materia[] = [
-  { id: 1, nombre: 'Cálculo Diferencial' },
-  { id: 2, nombre: 'Álgebra Lineal' },
-  { id: 3, nombre: 'Cálculo Integral' },
-  { id: 4, nombre: 'Ecuaciones Diferenciales' },
-  { id: 5, nombre: 'Matemáticas Discretas' },
-  { id: 6, nombre: 'Aplicaciones Distribuidas e Internet De Las Cosas' },
-  { id: 7, nombre: 'Arquitectura de Computadoras y Paralelismo' },
-  { id: 8, nombre: 'Ingeniería de Software' },
-  { id: 9, nombre: 'Introducción a la Ciencia de Datos' },
-  { id: 10, nombre: 'Modelado y Simulacion' }
-];
+  materias: Materia[] = [];
+
 
 
   todasLasTutorias: Tutoria[] = [];
@@ -135,36 +127,52 @@ export class ProfesorHistorialPage implements OnInit {
 
 ngOnInit() {
   console.log('Página de historial inicializada');
-  this.cargarHistorial();
+  this.cargarCatalogos();
 }
+cargarCatalogos() {
+  Promise.all([
+    this.tutoriaService.getMaterias().toPromise(),
+    this.tutoriaService.getEstudiantes().toPromise()
+  ]).then(([materias, estudiantes]) => {
 
-  cargarHistorial(){
+    if (materias) {
+      this.materias = materias;
+      materias.forEach((m:any) =>
+        this.materiasMap.set(m.id, m.nombre)
+      );
+    }
+
+    if (estudiantes) {
+      estudiantes.forEach((e:any) =>
+        this.estudiantesMap.set(e.id, e.nombre)
+      );
+    }
+
+    // 👇 recién aquí cargas historial
+    this.cargarHistorial();
+  });
+}
+  cargarHistorial() {
 
   this.tutoriaService.obtenerTutoriasDocente()
-  .subscribe((data:any)=>{
+    .subscribe((data: any) => {
 
-    this.todasLasTutorias = data.map((t:any)=>({
-      id: t.id,
-      materia: t.materia_nombre,
-      estudiante: t.estudiante_nombre,
-      fecha: t.fecha,
-      hora: `${t.hora_inicio} - ${t.hora_fin}`,
-      estado: t.estado,
-      motivoCancelacion: t.motivo_cancelacion,
-      duracion: t.duracion,
-      fechaCompleta: new Date(t.fecha)
-    }));
+      this.todasLasTutorias = data.map((t: { id: any; materia_id: number; estudiante_id: number; fecha: string | number | Date; hora_inicio: any; hora_fin: any; estado: any; motivo_cancelacion: any; duracion: any; }) => ({
+        id: t.id,
+        materia: this.materiasMap.get(t.materia_id) || 'Materia no encontrada',
+        estudiante: this.estudiantesMap.get(t.estudiante_id) || 'Estudiante no encontrado',
+        fecha: t.fecha,
+        hora: `${t.hora_inicio} - ${t.hora_fin}`,
+        estado: t.estado,
+        motivoCancelacion: t.motivo_cancelacion,
+        duracion: t.duracion,
+        fechaCompleta: new Date(t.fecha)
+      }));
 
-    this.aplicarFiltros();
-    this.calcularEstadisticas();
-
-  });
-
+      this.aplicarFiltros();
+      this.calcularEstadisticas();
+    });
 }
-
-
-
-
 
   aplicarFiltros() {
 

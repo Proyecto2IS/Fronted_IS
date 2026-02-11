@@ -37,6 +37,7 @@ import {
 } from 'ionicons/icons';
 import { TutoriasService } from '../../Services/tutoria.service';
 
+
 interface AlternativaPropuesta {
   id: number;
   fecha: string;
@@ -94,6 +95,8 @@ export class EstudianteSolicitudesPage implements OnInit {
 
   tabActivo: string = 'pendientes';
   filtroProcesadas: string = 'todas';
+  materiasMap = new Map<number, string>();
+  docentesMap = new Map<number, string>();
 
   solicitudesPendientes: Solicitud[] = [];
   solicitudesConfirmadas: Solicitud[] = [];
@@ -127,8 +130,34 @@ export class EstudianteSolicitudesPage implements OnInit {
   }
 
   ngOnInit() {
-    this.cargarSolicitudes();
+    this.cargarCatalogos();
+
   }
+cargarCatalogos() {
+  Promise.all([
+    this.tutoriaService.getMaterias().toPromise(),
+    this.tutoriaService.getDocentes().toPromise()
+  ]).then(([materias, docentes]) => {
+
+    if (materias) {
+      materias.forEach((m: any) =>
+        this.materiasMap.set(m.id, m.nombre)
+      );
+    }
+
+    if (docentes) {
+      docentes.forEach((d: any) =>
+        this.docentesMap.set(d.id, d.nombre)
+      );
+    }
+
+    // 👇 recién aquí
+    this.cargarSolicitudes();
+  }).catch(err => {
+    console.error('Error cargando catálogos', err);
+    this.cargarSolicitudes(); // fallback
+  });
+}
 
   cargarSolicitudes() {
     this.tutoriaService.obtenerTutoriasEstudiante()
@@ -176,13 +205,13 @@ export class EstudianteSolicitudesPage implements OnInit {
             console.log(`  🔵 Alternativas finales para tutoría ${t.id} (${alternativas.length}):`, alternativas);
 
             const solicitudMapeada: Solicitud = {
-              id: t.id,
-              materia: t.tema || 'Sin materia',
-              docente: t.docente_id ? 'Docente ' + t.docente_id : 'Sin docente',
-              docenteEmail: t.docente_email || '',
-              fecha: t.fecha,
-              hora: `${t.hora_inicio} - ${t.hora_fin}`,
-              estado: this.mapearEstado(t.estado),
+  id: t.id,
+  materia: this.materiasMap.get(t.materia_id) || 'Materia',
+  docente: this.docentesMap.get(t.docente_id) || 'Docente',
+  docenteEmail: t.docente_email || '',
+  fecha: t.fecha,
+  hora: `${t.hora_inicio} - ${t.hora_fin}`,
+  estado: this.mapearEstado(t.estado),
 
               numeroEstudiantesSolicitados: t.numero_estudiantes_solicitados,
               numeroEstudiantesAsistieron: t.numero_estudiantes_asistieron,
@@ -318,8 +347,8 @@ aplicarFiltroProcesadas() {
   }
 
   verDetalles(solicitud: Solicitud) {
-    console.log('👁️ Navegando a detalles de solicitud:', solicitud.id);
-    this.router.navigate(['/estudiante-solicitudes', solicitud.id]);
+    console.log('👁️ Ver detalles de solicitud:', solicitud);
+    // Aquí se abriría un modal con todos los detalles
   }
 
   onRefresh() {

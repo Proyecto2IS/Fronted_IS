@@ -11,6 +11,9 @@ import { Dia } from 'src/app/Interfaces/dia';
 import { Router } from '@angular/router';
 import {IonButtons,IonBackButton,IonButton,IonIcon,IonCard,IonCardContent,IonItem,IonTextarea} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
+import { TutoriaInterface } from 'src/app/Interfaces/tutoria.interface';
+import { TutoriasService } from 'src/app/Services/tutoria.service';
+
 import {
   checkmark,
   bookOutline,
@@ -74,7 +77,9 @@ export class SolicitarTutoriaPage implements OnInit {
   // Paso 4: Confirmación
   motivoSolicitud: string = '';
 
-  constructor(private router: Router) {
+  fechaSeleccionadaReal: string = '';
+
+  constructor(private router: Router, private tutoriaService: TutoriasService) {
     // Registrar los íconos
     addIcons({
       'checkmark': checkmark,
@@ -104,16 +109,16 @@ export class SolicitarTutoriaPage implements OnInit {
   }
 
   cargarMaterias() {
-    // Según requisitos: "El sistema debe exigir como primer paso la selección obligatoria de una materia"
-    this.materias = [
-      { id: 1, nombre: 'Cálculo Diferencial', codigo: 'MAT-101' },
-      { id: 2, nombre: 'Álgebra Lineal', codigo: 'MAT-102' },
-      { id: 3, nombre: 'Programación I', codigo: 'INF-101' },
-      { id: 4, nombre: 'Física I', codigo: 'FIS-101' },
-      { id: 5, nombre: 'Cálculo Integral', codigo: 'MAT-201' },
-      { id: 6, nombre: 'Estadística', codigo: 'MAT-103' }
-    ];
-  }
+  this.tutoriaService.getMaterias().subscribe({
+    next: (resp: Materia[]) => {
+      this.materias = resp;
+    },
+    error: err => {
+      console.error('Error cargando materias', err);
+    }
+  });
+}
+
 
   seleccionarMateria(materia: Materia) {
     this.materiaSeleccionada = materia;
@@ -121,119 +126,102 @@ export class SolicitarTutoriaPage implements OnInit {
   }
 
   cargarDocentes() {
-    // Según requisitos: "El sistema debe mostrar únicamente docentes asociados a la materia seleccionada
-    // y con disponibilidad registrada"
-    this.docentesDisponibles = [
-      {
-        id: 1,
-        nombre: 'Dr. Juan Pérez',
-        email: 'juan.perez@universidad.edu.ec',
-        horariosDisponibles: 8
+  if (!this.materiaSeleccionada) return;
+
+  this.tutoriaService
+    .getDocentesPorMateria(this.materiaSeleccionada.id)
+    .subscribe({
+      next: (resp) => {
+        this.docentesDisponibles = resp;
+        console.log('Docentes desde BD:', resp);
       },
-      {
-        id: 2,
-        nombre: 'Dra. Ana Torres',
-        email: 'ana.torres@universidad.edu.ec',
-        horariosDisponibles: 5
-      },
-      {
-        id: 3,
-        nombre: 'Ing. María Rodríguez',
-        email: 'maria.rodriguez@universidad.edu.ec',
-        horariosDisponibles: 12
+      error: (err) => {
+        console.error('Error cargando docentes', err);
       }
-    ];
-  }
+    });
+}
 
   seleccionarDocente(docente: Docente) {
     this.docenteSeleccionado = docente;
     console.log('Docente seleccionado:', docente);
   }
 
-  cargarHorarios() {
-    // Según requisitos: "El sistema debe mostrar un calendario visual con días y horarios disponibles
-    // del docente seleccionado"
-    this.semanaActualTexto = '07 - 13 Feb 2026';
+cargarHorarios() {
+  if (!this.docenteSeleccionado) return;
 
-    this.diasSemana = [
-      {
-        nombre: 'Lunes',
-        fecha: '07 Feb',
-        horarios: [
-          { id: 'lun-8', hora: '08:00 - 09:00', disponible: true },
-          { id: 'lun-9', hora: '09:00 - 10:00', disponible: false },
-          { id: 'lun-10', hora: '10:00 - 11:00', disponible: true, conflicto: true },
-          { id: 'lun-14', hora: '14:00 - 15:00', disponible: true },
-          { id: 'lun-15', hora: '15:00 - 16:00', disponible: false }
-        ]
+  this.tutoriaService
+    .getDisponibilidadDocente(this.docenteSeleccionado.id)
+    .subscribe({
+      next: (resp) => {
+        console.log('Disponibilidad real:', resp);
+
+        // Transformamos la disponibilidad en tu estructura visual
+        this.diasSemana = this.transformarDisponibilidad(resp);
+        console.log('Disponibilidad real:', resp);
       },
-      {
-        nombre: 'Martes',
-        fecha: '08 Feb',
-        horarios: [
-          { id: 'mar-9', hora: '09:00 - 10:00', disponible: true },
-          { id: 'mar-10', hora: '10:00 - 11:00', disponible: true },
-          { id: 'mar-11', hora: '11:00 - 12:00', disponible: false },
-          { id: 'mar-14', hora: '14:00 - 15:00', disponible: true },
-          { id: 'mar-16', hora: '16:00 - 17:00', disponible: true }
-        ]
-      },
-      {
-        nombre: 'Miércoles',
-        fecha: '09 Feb',
-        horarios: [
-          { id: 'mie-8', hora: '08:00 - 09:00', disponible: true },
-          { id: 'mie-10', hora: '10:00 - 11:00', disponible: true },
-          { id: 'mie-11', hora: '11:00 - 12:00', disponible: false },
-          { id: 'mie-15', hora: '15:00 - 16:00', disponible: true },
-          { id: 'mie-16', hora: '16:00 - 17:00', disponible: false }
-        ]
-      },
-      {
-        nombre: 'Jueves',
-        fecha: '10 Feb',
-        horarios: [
-          { id: 'jue-9', hora: '09:00 - 10:00', disponible: false },
-          { id: 'jue-10', hora: '10:00 - 11:00', disponible: true },
-          { id: 'jue-14', hora: '14:00 - 15:00', disponible: true },
-          { id: 'jue-15', hora: '15:00 - 16:00', disponible: true },
-          { id: 'jue-16', hora: '16:00 - 17:00', disponible: false }
-        ]
-      },
-      {
-        nombre: 'Viernes',
-        fecha: '11 Feb',
-        horarios: [
-          { id: 'vie-8', hora: '08:00 - 09:00', disponible: true },
-          { id: 'vie-9', hora: '09:00 - 10:00', disponible: true },
-          { id: 'vie-10', hora: '10:00 - 11:00', disponible: false },
-          { id: 'vie-14', hora: '14:00 - 15:00', disponible: false },
-          { id: 'vie-15', hora: '15:00 - 16:00', disponible: true }
-        ]
+      error: (err) => {
+        console.error('Error cargando disponibilidad', err);
       }
-    ];
-  }
+    });
+}
+private transformarDisponibilidad(data: any[]): Dia[] {
+
+  const hoy = new Date();
+  const diasSemanaMap: any = {
+    'Lunes': 1,
+    'Martes': 2,
+    'Miercoles': 3,
+    'Jueves': 4,
+    'Viernes': 5
+  };
+
+  const diasAgrupados: { [key: string]: Dia } = {};
+
+  data.forEach(item => {
+
+    if (!diasAgrupados[item.dia_semana]) {
+
+      const numeroDia = diasSemanaMap[item.dia_semana];
+
+      const fecha = new Date();
+      const diaActual = fecha.getDay();
+
+      const diferencia = numeroDia - diaActual;
+      fecha.setDate(fecha.getDate() + diferencia);
+
+      const fechaFormateada = fecha.toISOString().split('T')[0];
+
+      diasAgrupados[item.dia_semana] = {
+        nombre: item.dia_semana,
+        fecha: fechaFormateada,
+        horarios: []
+      };
+    }
+
+    diasAgrupados[item.dia_semana].horarios.push({
+      id: item.id.toString(),
+      hora: `${item.hora_inicio} - ${item.hora_fin}`,
+      disponible: true
+    });
+
+  });
+
+  return Object.values(diasAgrupados);
+}
 
   cambiarSemana(direccion: number) {
     console.log('Cambiar semana:', direccion);
     // Aquí se cargarían los horarios de la semana anterior o siguiente
   }
 
-  seleccionarHorario(horario: Horario, dia: Dia) {
-    // Según requisitos:
-    // "El sistema debe bloquear automáticamente horarios ocupados o no disponibles del docente"
-    // "El sistema debe permitir al estudiante seleccionar fecha y hora solo dentro de los bloques disponibles"
-    // "El sistema debe impedir que el estudiante solicite una tutoría en un horario donde ya tenga otra tutoría"
+ seleccionarHorario(horario: Horario, dia: Dia) {
 
-    if (!horario.disponible || horario.conflicto) {
-      console.log('Horario no disponible o en conflicto');
-      return;
-    }
+  if (!horario.disponible || horario.conflicto) return;
 
-    this.horarioSeleccionado = horario;
-    this.fechaSeleccionadaTexto = `${dia.nombre}, ${dia.fecha}`;
-    console.log('Horario seleccionado:', horario, 'Día:', dia);
-  }
+  this.horarioSeleccionado = horario;
+  this.fechaSeleccionadaReal = dia.fecha;
+  this.fechaSeleccionadaTexto = `${dia.nombre}, ${dia.fecha}`;
+}
 
   siguientePaso() {
     if (this.pasoActual === 1 && this.materiaSeleccionada) {
@@ -286,28 +274,33 @@ private separarHoras(hora: string): { inicio: string; fin: string } {
   return { inicio, fin };
 }
 
-  enviarSolicitud() {
+enviarSolicitud() {
+
   if (!this.validarSolicitud()) return;
 
   const { inicio, fin } = this.separarHoras(
     this.horarioSeleccionado!.hora
   );
 
-  const solicitud = {
-    estudiante_id: 1, // luego lo sacas del token
+  const solicitud: TutoriaInterface = {
     docente_id: this.docenteSeleccionado!.id,
     materia_id: this.materiaSeleccionada!.id,
-    fecha: '2026-02-07', // luego lo calculas bien
+    fecha: this.fechaSeleccionadaReal,
     hora_inicio: inicio,
     hora_fin: fin,
     numero_estudiantes_solicitados: 1,
     tema: this.motivoSolicitud,
-    estado: 'pendiente'
+    estudiante_id: 0 // 👈 el backend lo reemplaza con el del token
   };
 
-  console.log('Solicitud lista para backend:', solicitud);
-
-  // this.tutoriasService.crearTutoria(solicitud).subscribe();
+  this.tutoriaService.crearTutoria(solicitud).subscribe({
+    next: () => {
+      this.router.navigate(['/estudiante']);
+    },
+    error: (err) => {
+      console.error('Error creando tutoría', err);
+    }
+  });
 }
 
 }

@@ -4,6 +4,11 @@
       <ion-back-button defaultHref="/estudiante"></ion-back-button>
     </ion-buttons>
     <ion-title>Mis Solicitudes</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onRefresh()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -161,6 +166,22 @@
                   <span class="info-value">{{ solicitud.hora }}</span>
                 </div>
               </div>
+
+              <div class="fecha-confirmacion">
+                <ion-icon name="checkmark-outline"></ion-icon>
+                <span>Confirmada el {{ solicitud.fechaConfirmacion }}</span>
+              </div>
+            </div>
+
+            <div class="solicitud-footer">
+              <ion-button
+                expand="block"
+                fill="clear"
+                size="small"
+                (click)="verDetalles(solicitud)">
+                <ion-icon name="eye-outline" slot="start"></ion-icon>
+                Ver detalles
+              </ion-button>
             </div>
           </ion-card-content>
         </ion-card>
